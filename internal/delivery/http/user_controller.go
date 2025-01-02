@@ -31,6 +31,7 @@ func (c *UserController) Register(ctx *fiber.Ctx) error {
 	response, err := c.UseCase.Create(ctx.UserContext(), request)
 	if err != nil {
 		c.Log.Warnf("Failed to register user : %+v", err)
+		return err
 	}
 	return ctx.JSON(model.WebResponse[*model.UserResponse]{Data: response})
 }
@@ -45,7 +46,7 @@ func (c *UserController) Login(ctx *fiber.Ctx) error {
 	response, err := c.UseCase.Login(ctx.UserContext(), request)
 	if err != nil {
 		c.Log.Warnf("Failed to login user : %+v", err)
-		return fiber.ErrBadRequest
+		return err
 	}
 	return ctx.JSON(model.WebResponse[*model.UserResponse]{Data: response})
 }
