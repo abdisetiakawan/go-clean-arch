@@ -23,4 +23,5 @@ var (
     ErrInvalidCredentials = NewApiError(fiber.StatusUnauthorized, "Invalid credentials")
     ErrBadRequest        = NewApiError(fiber.StatusBadRequest, "Invalid request")
     ErrInternalServer    = NewApiError(fiber.StatusInternalServerError, "Internal server error")
+    ErrNotFound          = NewApiError(fiber.StatusNotFound, "Resource not found")
 )
