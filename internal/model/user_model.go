@@ -3,7 +3,7 @@ package model
 type UserResponse struct {
 	Name         string `json:"name"`
 	Email        string `json:"email"`
-	AccessToken  string `json:"access_token"`
+	AccessToken  string `json:"access_token,omitempty"`
 	RefreshToken string `json:"refresh_token"`
 }
 
