@@ -12,9 +12,18 @@ type CreateTaskRequest struct {
 	DueDate     time.Time	`json:"due_date" validate:"required"`
 }
 
+type UpdateTaskRequest struct {
+	ID			string `json:"-"`
+	Email       string `json:"-" validate:"max=100"`
+	Title       string `json:"title" validate:"max=150"`
+	Description string `json:"description"`
+	Status      string `json:"status"`
+	DueDate     time.Time	`json:"due_date"`
+}
+
 type TaskResponse struct {
 	Email 		string `json:"email,omitempty"`
-	Title 		string `json:"name"`
+	Title 		string `json:"title"`
 	Description string `json:"description"`
 	Status		string `json:"status"`
 	DueDate		time.Time `json:"due_date"`
