@@ -1,6 +1,8 @@
 package http
 
 import (
+	"math"
+
 	"github.com/abdisetiakawan/go-clean-arch/internal/delivery/http/middleware"
 	"github.com/gofiber/fiber/v2"
 	"github.com/sirupsen/logrus"
@@ -23,26 +25,28 @@ func NewTaskController(useCase *usecase.TaskUseCase, logger *logrus.Logger) *Tas
 
 func (c *TaskController) List(ctx *fiber.Ctx) error {
 	auth := middleware.GetUser(ctx)
-	request := &model.ListTaskRequest{
-		UserID: auth.ID,
+	request := &model.SearchTaskRequest{
+		Email: auth.Email,
 		Title: ctx.Query("title", ""),
 		Description: ctx.Query("description", ""),
+		Status: ctx.Query("status", ""),
 		Page: ctx.QueryInt("page", 1),
 		Size: ctx.QueryInt("size", 10),
 	}
 
-	responses, total, err := c.UseCase.List(ctx.UserContext(), request)
+	responses, total, err := c.UseCase.Search(ctx.UserContext(), request)
 	if err != nil {
 		c.Log.Warnf("Failed to list tasks : %+v", err)
 		return err
 	}
-	paging := &model.PageMetaData{
+	paging := &model.PageMetadata{
 		Page: request.Page,
 		Size: request.Size,
-		Total: total,
-		TotalPage: int(total / int64(request.Size)) + 1,
+		TotalItem: total,
+		TotalPage: int64(math.Ceil(float64(total) / float64(request.Size))),
 	}
-	return ctx.JSON(model.WebResponse[[]model.ListTaskResponse]{Paging: responses, Meta: paging})
+
+	return ctx.JSON(model.WebResponse[[]model.TaskResponse]{Paging: paging, Data: responses})
 }
 
 func (c *TaskController) Create(ctx *fiber.Ctx) error {
@@ -52,52 +56,53 @@ func (c *TaskController) Create(ctx *fiber.Ctx) error {
 		c.Log.Warnf("Failed to parse request body : %+v", err)
 		return fiber.ErrBadRequest
 	}
-	request.UserID = auth.ID
+	request.Email = auth.Email
 	response, err := c.UseCase.Create(ctx.UserContext(), request)
 	if err != nil {
 		c.Log.Warnf("Failed to create task : %+v", err)
+		return err
 	}
-	return ctx.JSON(model.WebResponse[*model.CreateTaskResponse]{Data: response})
+	return ctx.JSON(model.WebResponse[*model.TaskResponse]{Data: response})
 }
 
-func (c *TaskController) Update(ctx *fiber.Ctx) error {
-	auth := middleware.GetUser(ctx)
-	request := new(model.UpdateTaskRequest)
-	if err := ctx.BodyParser(request); err != nil {
-		c.Log.Warnf("Failed to parse request body : %+v", err)
-		return fiber.ErrBadRequest
-	}
-	request.UserID = auth.ID
-	response, err := c.UseCase.Update(ctx.UserContext(), request)
-	if err != nil {
-		c.Log.Warnf("Failed to update task : %+v", err)
-	}
-	return ctx.JSON(model.WebResponse[*model.UpdateTaskResponse]{Data: response})
-}
+// func (c *TaskController) Update(ctx *fiber.Ctx) error {
+// 	auth := middleware.GetUser(ctx)
+// 	request := new(model.UpdateTaskRequest)
+// 	if err := ctx.BodyParser(request); err != nil {
+// 		c.Log.Warnf("Failed to parse request body : %+v", err)
+// 		return fiber.ErrBadRequest
+// 	}
+// 	request.UserID = auth.ID
+// 	response, err := c.UseCase.Update(ctx.UserContext(), request)
+// 	if err != nil {
+// 		c.Log.Warnf("Failed to update task : %+v", err)
+// 	}
+// 	return ctx.JSON(model.WebResponse[*model.UpdateTaskResponse]{Data: response})
+// }
 
-func (c *TaskController) Get(ctx *fiber.Ctx) error {
-	auth := middleware.GetUser(ctx)
-	request := &model.GetTaskRequest{
-		ID: ctx.Params("taskId"),
-		UserID: auth.ID,
-	}
+// func (c *TaskController) Get(ctx *fiber.Ctx) error {
+// 	auth := middleware.GetUser(ctx)
+// 	request := &model.GetTaskRequest{
+// 		ID: ctx.Params("taskId"),
+// 		UserID: auth.ID,
+// 	}
 
-	response, err := c.UseCase.Get(ctx.UserContext(), request)
-	if err != nil {
-		c.Log.Warnf("Failed to get task : %+v", err)
-	}
-	return ctx.JSON(model.WebResponse[*model.GetTaskResponse]{Data: response})
-}
+// 	response, err := c.UseCase.Get(ctx.UserContext(), request)
+// 	if err != nil {
+// 		c.Log.Warnf("Failed to get task : %+v", err)
+// 	}
+// 	return ctx.JSON(model.WebResponse[*model.GetTaskResponse]{Data: response})
+// }
 
-func (c *TaskController) Delete(ctx *fiber.Ctx) error {
-	auth := middleware.GetUser(ctx)
-	request := &model.DeleteTaskRequest{
-		ID: ctx.Params("taskId"),
-		UserID: auth.ID,
-	}
-	response, err := c.UseCase.Delete(ctx.UserContext(), request)
-	if err != nil {
-		c.Log.Warnf("Failed to delete task : %+v", err)
-	}
-	return ctx.JSON(model.WebResponse[*model.DeleteTaskResponse]{Data: response})
-}
+// func (c *TaskController) Delete(ctx *fiber.Ctx) error {
+// 	auth := middleware.GetUser(ctx)
+// 	request := &model.DeleteTaskRequest{
+// 		ID: ctx.Params("taskId"),
+// 		UserID: auth.ID,
+// 	}
+// 	response, err := c.UseCase.Delete(ctx.UserContext(), request)
+// 	if err != nil {
+// 		c.Log.Warnf("Failed to delete task : %+v", err)
+// 	}
+// 	return ctx.JSON(model.WebResponse[*model.DeleteTaskResponse]{Data: response})
+// }
