@@ -8,7 +8,6 @@ import (
 
 func UserToResponse(user *entity.User) *model.UserResponse {
     return &model.UserResponse{
-        ID:           user.ID,
         Name:         user.Name,
         Email:        user.Email,
         AccessToken:  user.AccessToken,

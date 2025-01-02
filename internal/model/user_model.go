@@ -1,7 +1,6 @@
 package model
 
 type UserResponse struct {
-	ID           string `json:"id"`
 	Name         string `json:"name"`
 	Email        string `json:"email"`
 	AccessToken  string `json:"access_token"`
@@ -13,7 +12,6 @@ type VerifyUserRequest struct {
 }
 
 type CreateUserRequest struct {
-	ID       string `json:"id,omitempty" validate:"required,max=100"`
 	Name     string `json:"name,omitempty" validate:"required,max=100"`
 	Email    string `json:"email,omitempty" validate:"required,max=100"`
 	Password string `json:"password,omitempty" validate:"required,max=100"`
