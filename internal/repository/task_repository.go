@@ -52,3 +52,7 @@ func (r *TaskRepository) FilterTask(request *model.SearchTaskRequest) func(tx *g
         return tx
     }
 }
+
+func (r *TaskRepository) FindByEmailAndId(db *gorm.DB, task *entity.Task, id string, email string) error {
+	return db.Where("id = ? AND email = ?", id, email).Take(task).Error
+}
