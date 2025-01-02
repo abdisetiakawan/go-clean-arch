@@ -8,7 +8,6 @@ import (
 	"github.com/abdisetiakawan/go-clean-arch/internal/model/converter"
 	"github.com/abdisetiakawan/go-clean-arch/internal/repository"
 	"github.com/go-playground/validator/v10"
-	"github.com/gofiber/fiber"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -35,7 +34,7 @@ func (c *TaskUseCase) Create(ctx context.Context, request *model.CreateTaskReque
 
 	if err := c.Validate.Struct(request); err != nil {
 		c.Log.WithError(err).Error("error validate request body")
-		return nil, fiber.ErrBadRequest
+		return nil, model.ErrBadRequest
 	}
 	task := &entity.Task{
 		Email: request.Email,
@@ -46,11 +45,11 @@ func (c *TaskUseCase) Create(ctx context.Context, request *model.CreateTaskReque
 	}
 	if err := c.TaskRepository.Create(tx, task); err != nil {
 		c.Log.WithError(err).Error("error create task")
-		return nil, fiber.ErrInternalServerError
+		return nil, model.ErrInternalServer
 	}
 	if err := tx.Commit().Error; err != nil {
 		c.Log.WithError(err).Error("error create task")
-		return nil, fiber.ErrInternalServerError
+		return nil, model.ErrInternalServer
 	}
 
 	return converter.TaskToResponse(task), nil
@@ -62,16 +61,16 @@ func (c *TaskUseCase) Search(ctx context.Context, request *model.SearchTaskReque
 
 	if err := c.Validate.Struct(request); err != nil {
 		c.Log.WithError(err).Error("error validate request body")
-		return nil, 0, fiber.ErrBadRequest
+		return nil, 0, model.ErrBadRequest
 	}
 	tasks, total, err := c.TaskRepository.Search(tx, request)
 	if err != nil {
 		c.Log.WithError(err).Error("error search task")
-		return nil, 0, fiber.ErrInternalServerError
+		return nil, 0, model.ErrInternalServer
 	}
 	if err := tx.Commit().Error; err != nil {
 		c.Log.WithError(err).Error("error search task")
-		return nil, 0, fiber.ErrInternalServerError
+		return nil, 0, model.ErrInternalServer
 	}
 	responses := make([]model.TaskResponse, len(tasks))
 	for i, task := range tasks {
@@ -79,4 +78,24 @@ func (c *TaskUseCase) Search(ctx context.Context, request *model.SearchTaskReque
 		responses[i] = *converter.TaskToResponse(&task)
 	}
 	return responses, total, nil
+}
+
+func (c *TaskUseCase) Get(ctx context.Context, request *model.GetTaskRequest) (*model.TaskResponse, error) {
+	tx := c.DB.WithContext(ctx).Begin()
+	defer tx.Rollback()
+
+	if err := c.Validate.Struct(request); err != nil {
+		c.Log.WithError(err).Error("error validate request query")
+		return nil, model.ErrBadRequest
+	}
+	task := new(entity.Task)
+	if err := c.TaskRepository.FindByEmailAndId(tx, task, request.ID, request.Email); err != nil {
+		c.Log.WithError(err).Error("error search task")
+		return nil, model.ErrNotFound
+	}
+	if err := tx.Commit().Error; err != nil {
+		c.Log.WithError(err).Error("error search task")
+		return nil, model.ErrInternalServer
+	}
+	return converter.TaskToResponse(task), nil
 }
