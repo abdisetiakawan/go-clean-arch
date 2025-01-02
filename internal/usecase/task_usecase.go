@@ -99,3 +99,69 @@ func (c *TaskUseCase) Get(ctx context.Context, request *model.GetTaskRequest) (*
 	}
 	return converter.TaskToResponse(task), nil
 }
+
+func (c *TaskUseCase) Delete(ctx context.Context, request *model.GetTaskRequest) error {
+	tx := c.DB.WithContext(ctx).Begin()
+	defer tx.Rollback()
+
+	if err := c.Validate.Struct(request); err != nil {
+		c.Log.WithError(err).Error("error validate request query")
+		return model.ErrBadRequest
+	}
+
+	task := new(entity.Task)
+	if err := c.TaskRepository.FindByEmailAndId(tx, task, request.ID, request.Email); err != nil {
+		c.Log.WithError(err).Error("error search task")
+		return model.ErrNotFound
+	}
+
+	if err := c.TaskRepository.Delete(tx, task); err != nil {
+		c.Log.WithError(err).Error("error delete task")
+		return model.ErrInternalServer
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		c.Log.WithError(err).Error("error delete task")
+		return model.ErrInternalServer
+	}
+
+	return nil
+}
+
+func (c *TaskUseCase) Update(ctx context.Context, request *model.UpdateTaskRequest) (*model.TaskResponse, error) {
+	tx := c.DB.WithContext(ctx).Begin()
+	defer tx.Rollback()
+
+	task := new(entity.Task)
+	if err := c.TaskRepository.FindByEmailAndId(tx, task, request.ID, request.Email); err != nil {
+		c.Log.WithError(err).Error("error search task")
+		return nil, model.ErrNotFound
+	}
+	if err := c.Validate.Struct(request); err != nil {
+		c.Log.WithError(err).Error("error validate request query")
+		return nil, model.ErrBadRequest
+	}
+	if request.Title != "" {
+		task.Title = request.Title
+	}
+	if request.Description != "" {
+		task.Description = request.Description
+	}
+	if request.Status != "" {
+		task.Status = request.Status
+	}
+	if !request.DueDate.IsZero() { 
+		task.DueDate = request.DueDate
+	}
+	
+	if err := c.TaskRepository.Update(tx, task); err != nil {
+		c.Log.WithError(err).Error("error update task")
+		return nil, model.ErrInternalServer
+	}
+	if err := tx.Commit().Error; err != nil {
+		c.Log.WithError(err).Error("error update task")
+		return nil, model.ErrInternalServer
+	}
+
+	return converter.TaskToResponse(task), nil
+}
