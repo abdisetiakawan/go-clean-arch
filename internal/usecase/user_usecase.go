@@ -249,26 +249,3 @@ func (c *UserUseCase) Current(ctx context.Context, request *model.GetUserRequest
 
 	return converter.UserToResponse(user), nil
 }
-
-func (c *UserUseCase) Verify(ctx context.Context, request *model.VerifyUserRequest) (*model.Auth, error) {
-	tx := c.DB.WithContext(ctx).Begin()
-	defer tx.Rollback()
-
-	err := c.Validate.Struct(request)
-	if err != nil {
-		c.Log.Warnf("Failed to validate request body : %+v", err)
-		return nil, fiber.ErrBadRequest
-	}
-	user := new(entity.User)
-	if err := c.UserRepository.FindByToken(tx, user, request.Token); err != nil {
-		c.Log.Warnf("Failed to find user : %+v", err)
-		return nil, fiber.ErrInternalServerError
-	}
-
-	err = tx.Commit().Error
-	if err != nil {
-		c.Log.Warnf("Failed to commit transaction : %+v", err)
-		return nil, fiber.ErrInternalServerError
-	}
-	return &model.Auth{Email: user.Email}, nil
-}
