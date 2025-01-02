@@ -9,7 +9,6 @@ import (
 	"github.com/abdisetiakawan/go-clean-arch/internal/model/converter"
 	"github.com/abdisetiakawan/go-clean-arch/internal/repository"
 	"github.com/go-playground/validator/v10"
-	"github.com/gofiber/fiber"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -40,13 +39,13 @@ func (c *UserUseCase) Create(ctx context.Context, request *model.CreateUserReque
     err := c.Validate.Struct(request)
     if err != nil {
         c.Log.Warnf("Failed to validate request body : %+v", err)
-        return nil, fiber.ErrBadRequest
+        return nil, model.ErrBadRequest
     }
     
     total, err := c.UserRepository.CountByEmail(tx, request.Email)
     if err != nil {
         c.Log.Warnf("Failed to count user : %+v", err)
-        return nil, fiber.ErrInternalServerError
+        return nil, model.ErrInternalServer
     }
     if total > 0 {
         c.Log.Warnf("User already exists : %+v", err)
@@ -55,7 +54,7 @@ func (c *UserUseCase) Create(ctx context.Context, request *model.CreateUserReque
     password, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
     if err != nil {
         c.Log.Warnf("Failed to hash password : %+v", err)
-        return nil, fiber.ErrInternalServerError
+        return nil, model.ErrInternalServer
     }
     access_token, refreshToken, err := (*c.Helper).GenerateTokenUser(model.UserResponse{
 		Name:  request.Name,
@@ -63,7 +62,7 @@ func (c *UserUseCase) Create(ctx context.Context, request *model.CreateUserReque
 	})
     if err != nil {
         c.Log.Warnf("Failed to generate tokens : %+v", err)
-        return nil, fiber.ErrInternalServerError
+        return nil, model.ErrInternalServer
     }
 
     user := &entity.User{
@@ -77,13 +76,13 @@ func (c *UserUseCase) Create(ctx context.Context, request *model.CreateUserReque
     err = c.UserRepository.Create(tx, user)
     if err != nil {
         c.Log.Warnf("Failed to create user : %+v", err)
-        return nil, fiber.ErrInternalServerError
+        return nil, model.ErrInternalServer
     }
 
     err = tx.Commit().Error
     if err != nil {
         c.Log.Warnf("Failed to commit transaction : %+v", err)
-        return nil, fiber.ErrInternalServerError
+        return nil, model.ErrInternalServer
     }
 
     return converter.UserToResponse(user), nil
@@ -96,7 +95,7 @@ func (c *UserUseCase) Login(ctx context.Context, request *model.LoginUserRequest
     err := c.Validate.Struct(request)
     if err != nil {
         c.Log.Warnf("Failed to validate request body : %+v", err)
-        return nil, fiber.ErrBadRequest
+        return nil, model.ErrBadRequest
     }
 
     user := new(entity.User)
@@ -119,7 +118,7 @@ func (c *UserUseCase) Login(ctx context.Context, request *model.LoginUserRequest
     })
     if err != nil {
         c.Log.Warnf("Failed to generate tokens : %+v", err)
-        return nil, fiber.ErrInternalServerError
+        return nil, model.ErrInternalServer
     }
 
     user.AccessToken = accessToken
@@ -128,13 +127,13 @@ func (c *UserUseCase) Login(ctx context.Context, request *model.LoginUserRequest
     err = c.UserRepository.Update(tx, user)
     if err != nil {
         c.Log.Warnf("Failed to update user : %+v", err)
-        return nil, fiber.ErrInternalServerError
+        return nil, model.ErrInternalServer
     }
 
     err = tx.Commit().Error
     if err != nil {
         c.Log.Warnf("Failed to commit transaction : %+v", err)
-        return nil, fiber.ErrInternalServerError
+        return nil, model.ErrInternalServer
     }
 
     return converter.UserToResponse(user), nil
@@ -147,7 +146,7 @@ func (c *UserUseCase) Logout(ctx context.Context, request *model.LogoutUserReque
 	err := c.Validate.Struct(request)
 	if err != nil {
 		c.Log.Warnf("Failed to validate request body : %+v", err)
-		return false, fiber.ErrBadRequest
+		return false, model.ErrBadRequest
 	}
 
 	user := new(entity.User)
@@ -155,7 +154,7 @@ func (c *UserUseCase) Logout(ctx context.Context, request *model.LogoutUserReque
 	err = c.UserRepository.FindByEmail(tx, user, request.Email)
 	if err != nil {
 		c.Log.Warnf("Failed to find user : %+v", err)
-		return false, fiber.ErrInternalServerError
+		return false, model.ErrInternalServer
 	}
 
 	user.Token = ""
@@ -163,13 +162,13 @@ func (c *UserUseCase) Logout(ctx context.Context, request *model.LogoutUserReque
 	err = c.UserRepository.Update(tx, user)
 	if err != nil {
 		c.Log.Warnf("Failed to update user : %+v", err)
-		return false, fiber.ErrInternalServerError
+		return false, model.ErrInternalServer
 	}
 
 	err = tx.Commit().Error
 	if err != nil {
 		c.Log.Warnf("Failed to commit transaction : %+v", err)
-		return false, fiber.ErrInternalServerError
+		return false, model.ErrInternalServer
 	}
 
 	return true, nil
@@ -182,14 +181,14 @@ func (c *UserUseCase) Update(ctx context.Context, request *model.UpdateUserReque
 	err := c.Validate.Struct(request)
 	if err != nil {
 		c.Log.Warnf("Failed to validate request body : %+v", err)
-		return nil, fiber.ErrBadRequest
+		return nil, model.ErrBadRequest
 	}
 	user := new(entity.User)
 
 	err = c.UserRepository.FindByEmail(tx, user, request.Email)
 	if err != nil {
 		c.Log.Warnf("Failed to find user : %+v", err)
-		return nil, fiber.ErrInternalServerError
+		return nil, model.ErrInternalServer
 	}
 
 	if request.Name != "" {
@@ -204,7 +203,7 @@ func (c *UserUseCase) Update(ctx context.Context, request *model.UpdateUserReque
 		password, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
 		if err != nil {
 			c.Log.Warnf("Failed to generate password : %+v", err)
-			return nil, fiber.ErrInternalServerError
+			return nil, model.ErrInternalServer
 		}
 		user.Password = string(password)
 	}
@@ -212,13 +211,13 @@ func (c *UserUseCase) Update(ctx context.Context, request *model.UpdateUserReque
 	err = c.UserRepository.Update(tx, user)
 	if err != nil {
 		c.Log.Warnf("Failed to update user : %+v", err)
-		return nil, fiber.ErrInternalServerError
+		return nil, model.ErrInternalServer
 	}
 
 	err = tx.Commit().Error
 	if err != nil {
 		c.Log.Warnf("Failed to commit transaction : %+v", err)
-		return nil, fiber.ErrInternalServerError
+		return nil, model.ErrInternalServer
 	}
 
 	return converter.UserToResponse(user), nil
@@ -231,20 +230,20 @@ func (c *UserUseCase) Current(ctx context.Context, request *model.GetUserRequest
 	err := c.Validate.Struct(request)
 	if err != nil {
 		c.Log.Warnf("Failed to validate request body : %+v", err)
-		return nil, fiber.ErrBadRequest
+		return nil, model.ErrBadRequest
 	}
 	user := new(entity.User)
 
 	err = c.UserRepository.FindByEmail(tx, user, request.Email)
 	if err != nil {
 		c.Log.Warnf("Failed to find user : %+v", err)
-		return nil, fiber.ErrInternalServerError
+		return nil, model.ErrInternalServer
 	}
 
 	err = tx.Commit().Error
 	if err != nil {
 		c.Log.Warnf("Failed to commit transaction : %+v", err)
-		return nil, fiber.ErrInternalServerError
+		return nil, model.ErrInternalServer
 	}
 
 	return converter.UserToResponse(user), nil
