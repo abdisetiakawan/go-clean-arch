@@ -8,7 +8,7 @@ import (
 	"github.com/abdisetiakawan/go-clean-arch/internal/model"
 	"github.com/abdisetiakawan/go-clean-arch/internal/model/converter"
 	"github.com/abdisetiakawan/go-clean-arch/internal/repository"
-	"github.com/go-playground/validator"
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
@@ -20,10 +20,10 @@ type UserUseCase struct {
     Log            *logrus.Logger
     Validate       *validator.Validate
     UserRepository *repository.UserRepository
-    Helper         helper.Helper
+    Helper         *helper.Helper
 }
 
-func NewUserUseCase(db *gorm.DB, log *logrus.Logger, validate *validator.Validate, userRepository *repository.UserRepository, helper helper.Helper) *UserUseCase {
+func NewUserUseCase(db *gorm.DB, log *logrus.Logger, validate *validator.Validate, userRepository *repository.UserRepository, helper *helper.Helper) *UserUseCase {
     return &UserUseCase{
         DB:             db,
         Log:            log,
@@ -43,7 +43,7 @@ func (c *UserUseCase) Create(ctx context.Context, request *model.CreateUserReque
         return nil, fiber.ErrBadRequest
     }
     
-    total, err := c.UserRepository.CountById(tx, request.ID)
+    total, err := c.UserRepository.CountByEmail(tx, request.Email)
     if err != nil {
         c.Log.Warnf("Failed to count user : %+v", err)
         return nil, fiber.ErrInternalServerError
@@ -52,29 +52,26 @@ func (c *UserUseCase) Create(ctx context.Context, request *model.CreateUserReque
         c.Log.Warnf("User already exists : %+v", err)
         return nil, fiber.ErrConflict
     }
-    
     password, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
     if err != nil {
         c.Log.Warnf("Failed to hash password : %+v", err)
         return nil, fiber.ErrInternalServerError
     }
-
-    accessToken, refreshToken, err := c.Helper.GenerateTokenUser(model.UserResponse{
-        Name:  request.Name,
-        Email: request.Email,
-    })
+    access_token, refreshToken, err := (*c.Helper).GenerateTokenUser(model.UserResponse{
+		Name:  request.Name,
+		Email: request.Email,
+	})
     if err != nil {
         c.Log.Warnf("Failed to generate tokens : %+v", err)
         return nil, fiber.ErrInternalServerError
     }
 
     user := &entity.User{
-        ID:           request.ID,
         Name:         request.Name,
         Email:        request.Email,
         Password:     string(password),
-        AccessToken:  accessToken,
         Token: refreshToken,
+		AccessToken: access_token,
     }
 
     err = c.UserRepository.Create(tx, user)
@@ -116,7 +113,7 @@ func (c *UserUseCase) Login(ctx context.Context, request *model.LoginUserRequest
 		return nil, fiber.ErrUnauthorized
 	}
 
-	accessToken, refreshToken, err := c.Helper.GenerateTokenUser(model.UserResponse{
+    accessToken, refreshToken, err := (*c.Helper).GenerateTokenUser(model.UserResponse{
 		Name:  user.Name,
 		Email: user.Email,
 	})
