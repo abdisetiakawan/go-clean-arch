@@ -50,7 +50,7 @@ func (c *UserUseCase) Create(ctx context.Context, request *model.CreateUserReque
     }
     if total > 0 {
         c.Log.Warnf("User already exists : %+v", err)
-        return nil, fiber.ErrConflict
+        return nil, model.ErrUserAlreadyExists
     }
     password, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
     if err != nil {
@@ -90,54 +90,54 @@ func (c *UserUseCase) Create(ctx context.Context, request *model.CreateUserReque
 }
 
 func (c *UserUseCase) Login(ctx context.Context, request *model.LoginUserRequest) (*model.UserResponse, error) {
-	tx := c.DB.WithContext(ctx).Begin()
-	defer tx.Rollback()
+    tx := c.DB.WithContext(ctx).Begin()
+    defer tx.Rollback()
 
-	err := c.Validate.Struct(request)
-	if err != nil {
-		c.Log.Warnf("Failed to validate request body : %+v", err)
-		return nil, fiber.ErrBadRequest
-	}
+    err := c.Validate.Struct(request)
+    if err != nil {
+        c.Log.Warnf("Failed to validate request body : %+v", err)
+        return nil, fiber.ErrBadRequest
+    }
 
-	user := new(entity.User)
+    user := new(entity.User)
 
-	err = c.UserRepository.FindByEmail(tx, user, request.Email)
-	if err != nil {
-		c.Log.Warnf("Failed to find user : %+v", err)
-		return nil, fiber.ErrInternalServerError
-	}
+    err = c.UserRepository.FindByEmail(tx, user, request.Email)
+    if err != nil {
+        c.Log.Warnf("Failed to find user : %+v", err)
+        return nil, model.ErrInvalidCredentials
+    }
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password))
-	if err != nil {
-		c.Log.Warnf("Failed to compare password : %+v", err)
-		return nil, fiber.ErrUnauthorized
-	}
+    err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password))
+    if err != nil {
+        c.Log.Warnf("Failed to compare password : %+v", err)
+        return nil, model.ErrInvalidCredentials
+    }
 
     accessToken, refreshToken, err := (*c.Helper).GenerateTokenUser(model.UserResponse{
-		Name:  user.Name,
-		Email: user.Email,
-	})
-	if err != nil {
-		c.Log.Warnf("Failed to generate tokens : %+v", err)
-		return nil, fiber.ErrInternalServerError
-	}
+        Name:  user.Name,
+        Email: user.Email,
+    })
+    if err != nil {
+        c.Log.Warnf("Failed to generate tokens : %+v", err)
+        return nil, fiber.ErrInternalServerError
+    }
 
-	user.AccessToken = accessToken
-	user.Token = refreshToken
+    user.AccessToken = accessToken
+    user.Token = refreshToken
 
-	err = c.UserRepository.Update(tx, user)
-	if err != nil {
-		c.Log.Warnf("Failed to update user : %+v", err)
-		return nil, fiber.ErrInternalServerError
-	}
+    err = c.UserRepository.Update(tx, user)
+    if err != nil {
+        c.Log.Warnf("Failed to update user : %+v", err)
+        return nil, fiber.ErrInternalServerError
+    }
 
-	err = tx.Commit().Error
-	if err != nil {
-		c.Log.Warnf("Failed to commit transaction : %+v", err)
-		return nil, fiber.ErrInternalServerError
-	}
+    err = tx.Commit().Error
+    if err != nil {
+        c.Log.Warnf("Failed to commit transaction : %+v", err)
+        return nil, fiber.ErrInternalServerError
+    }
 
-	return converter.UserToResponse(user), nil
+    return converter.UserToResponse(user), nil
 }
 
 func (c *UserUseCase) Logout(ctx context.Context, request *model.LogoutUserRequest) (bool, error) {
