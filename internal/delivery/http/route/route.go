@@ -34,9 +34,9 @@ func (c *RouteConfig) SetupUserRoute() {
 	// TODO : Create Task Endpoint
 	c.App.Get("/api/tasks", c.TaskController.List)
 	c.App.Post("/api/tasks", c.TaskController.Create)
-	// c.App.Put("/api/tasks/:taskId", c.TaskController.Update)
+	c.App.Put("/api/tasks/:taskId", c.TaskController.Update)
 	c.App.Get("/api/tasks/:taskId", c.TaskController.Get)
-	// c.App.Delete("/api/tasks/:taskId", c.TaskController.Delete)
+	c.App.Delete("/api/tasks/:taskId", c.TaskController.Delete)
 
 	// c.App.Post("/api/tags", c.TagsController.Create)
 	// c.App.Get("/api/tags", c.TagsController.List)

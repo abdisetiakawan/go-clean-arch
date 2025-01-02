@@ -65,20 +65,22 @@ func (c *TaskController) Create(ctx *fiber.Ctx) error {
 	return ctx.JSON(model.WebResponse[*model.TaskResponse]{Data: response})
 }
 
-// func (c *TaskController) Update(ctx *fiber.Ctx) error {
-// 	auth := middleware.GetUser(ctx)
-// 	request := new(model.UpdateTaskRequest)
-// 	if err := ctx.BodyParser(request); err != nil {
-// 		c.Log.Warnf("Failed to parse request body : %+v", err)
-// 		return fiber.ErrBadRequest
-// 	}
-// 	request.UserID = auth.ID
-// 	response, err := c.UseCase.Update(ctx.UserContext(), request)
-// 	if err != nil {
-// 		c.Log.Warnf("Failed to update task : %+v", err)
-// 	}
-// 	return ctx.JSON(model.WebResponse[*model.UpdateTaskResponse]{Data: response})
-// }
+func (c *TaskController) Update(ctx *fiber.Ctx) error {
+	auth := middleware.GetUser(ctx)
+	request := new(model.UpdateTaskRequest)
+	if err := ctx.BodyParser(request); err != nil {
+		c.Log.Warnf("Failed to parse request body : %+v", err)
+		return fiber.ErrBadRequest
+	}
+	request.Email = auth.Email
+	request.ID = ctx.Params("taskId")
+	response, err := c.UseCase.Update(ctx.UserContext(), request)
+	if err != nil {
+		c.Log.Warnf("Failed to update task : %+v", err)
+		return err
+	}
+	return ctx.JSON(model.WebResponse[*model.TaskResponse]{Data: response})
+}
 
 func (c *TaskController) Get(ctx *fiber.Ctx) error {
 	auth := middleware.GetUser(ctx)
@@ -95,15 +97,17 @@ func (c *TaskController) Get(ctx *fiber.Ctx) error {
 	return ctx.JSON(model.WebResponse[*model.TaskResponse]{Data: response})
 }
 
-// func (c *TaskController) Delete(ctx *fiber.Ctx) error {
-// 	auth := middleware.GetUser(ctx)
-// 	request := &model.DeleteTaskRequest{
-// 		ID: ctx.Params("taskId"),
-// 		UserID: auth.ID,
-// 	}
-// 	response, err := c.UseCase.Delete(ctx.UserContext(), request)
-// 	if err != nil {
-// 		c.Log.Warnf("Failed to delete task : %+v", err)
-// 	}
-// 	return ctx.JSON(model.WebResponse[*model.DeleteTaskResponse]{Data: response})
-// }
+func (c *TaskController) Delete(ctx *fiber.Ctx) error {
+	auth := middleware.GetUser(ctx)
+	request := &model.GetTaskRequest{
+		ID: ctx.Params("taskId"),
+		Email: auth.Email,
+	}
+
+	if err := c.UseCase.Delete(ctx.UserContext(), request); err != nil {
+		c.Log.Warnf("Failed to delete task : %+v", err)
+		return err
+	}
+	
+	return ctx.JSON(model.WebResponse[bool]{Data: true})
+}
