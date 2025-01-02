@@ -54,7 +54,7 @@ func (c *TaskController) Create(ctx *fiber.Ctx) error {
 	request := new(model.CreateTaskRequest)
 	if err := ctx.BodyParser(request); err != nil {
 		c.Log.Warnf("Failed to parse request body : %+v", err)
-		return fiber.ErrBadRequest
+		return model.ErrBadRequest
 	}
 	request.Email = auth.Email
 	response, err := c.UseCase.Create(ctx.UserContext(), request)
@@ -80,19 +80,20 @@ func (c *TaskController) Create(ctx *fiber.Ctx) error {
 // 	return ctx.JSON(model.WebResponse[*model.UpdateTaskResponse]{Data: response})
 // }
 
-// func (c *TaskController) Get(ctx *fiber.Ctx) error {
-// 	auth := middleware.GetUser(ctx)
-// 	request := &model.GetTaskRequest{
-// 		ID: ctx.Params("taskId"),
-// 		UserID: auth.ID,
-// 	}
+func (c *TaskController) Get(ctx *fiber.Ctx) error {
+	auth := middleware.GetUser(ctx)
+	request := &model.GetTaskRequest{
+		ID: ctx.Params("taskId"),
+		Email: auth.Email,
+	}
 
-// 	response, err := c.UseCase.Get(ctx.UserContext(), request)
-// 	if err != nil {
-// 		c.Log.Warnf("Failed to get task : %+v", err)
-// 	}
-// 	return ctx.JSON(model.WebResponse[*model.GetTaskResponse]{Data: response})
-// }
+	response, err := c.UseCase.Get(ctx.UserContext(), request)
+	if err != nil {
+		c.Log.Warnf("Failed to get task : %+v", err)
+		return err
+	}
+	return ctx.JSON(model.WebResponse[*model.TaskResponse]{Data: response})
+}
 
 // func (c *TaskController) Delete(ctx *fiber.Ctx) error {
 // 	auth := middleware.GetUser(ctx)
