@@ -9,7 +9,7 @@ import (
 type RouteConfig struct {
 	App               *fiber.App
 	UserController    *http.UserController
-	// TaskController 	*http.TaskController
+	TaskController 	*http.TaskController
 	// TagsController *http.TagsController
 	// TaskTagController *http.TaskTagController
 	AuthMiddleware    fiber.Handler
@@ -32,8 +32,8 @@ func (c *RouteConfig) SetupUserRoute() {
 	c.App.Get("/api/users/_current", c.UserController.Current)
 
 	// TODO : Create Task Endpoint
-	// c.App.Get("/api/tasks", c.TaskController.List)
-	// c.App.Post("/api/tasks", c.TaskController.Create)
+	c.App.Get("/api/tasks", c.TaskController.List)
+	c.App.Post("/api/tasks", c.TaskController.Create)
 	// c.App.Put("/api/tasks/:taskId", c.TaskController.Update)
 	// c.App.Get("/api/tasks/:taskId", c.TaskController.Get)
 	// c.App.Delete("/api/tasks/:taskId", c.TaskController.Delete)
