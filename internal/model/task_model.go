@@ -22,6 +22,7 @@ type UpdateTaskRequest struct {
 }
 
 type TaskResponse struct {
+	ID 			uint    `json:"id"`
 	Email 		string `json:"email,omitempty"`
 	Title 		string `json:"title"`
 	Description string `json:"description"`

@@ -7,6 +7,7 @@ import (
 
 func TaskToResponse(task *entity.Task) *model.TaskResponse {
 	return &model.TaskResponse{
+		ID: task.ID,
 		Email: task.Email,
 		Title: task.Title,
 		Description: task.Description,
