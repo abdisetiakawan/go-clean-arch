@@ -42,7 +42,7 @@ func (c *TaskTagUseCase) Create(ctx context.Context, request *model.CreateTaskTa
 
 	if err := c.TaskTagRepository.CreateTaskTag(tx, taskTag, email); err != nil {
 		c.Log.WithError(err).Error("error create task tag")
-		return nil, model.ErrInternalServer
+		return nil, err
 	}
 	
     if err := tx.Commit().Error; err != nil {
