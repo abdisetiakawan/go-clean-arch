@@ -31,12 +31,22 @@ func Bootstrap(config *BootstrapConfig) {
     taskRepository := repository.NewTaskRepository(config.Log)
     taskUseCase := usecase.NewTaskUseCase(config.DB, config.Log, config.Validate, taskRepository)
     taskController := http.NewTaskController(taskUseCase, config.Log)
+
+    tagRepository := repository.NewTagRepository(config.Log)
+    tagUseCase := usecase.NewTagUseCase(config.DB, config.Log, config.Validate, tagRepository)
+    tagController := http.NewTagsController(tagUseCase, config.Log)
+
+    taskTagRepository := repository.NewtaskTagRepository(config.Log)
+    taskTagUseCase := usecase.NewTaskTagUseCase(config.DB, config.Log, config.Validate, taskTagRepository)
+    taskTagController := http.NewTaskTagController(taskTagUseCase, config.Log)
     
     authMiddleware := middleware.NewAuth(userUseCase, config.Config)
     routeConfig := route.RouteConfig{
         App:            config.App,
         UserController: userController,
         TaskController: taskController,
+        TagsController: tagController,
+        TaskTagController: taskTagController,
         AuthMiddleware: authMiddleware,
     }
     routeConfig.Setup()
