@@ -58,7 +58,7 @@ func (c *TaskUseCase) Create(ctx context.Context, request *model.CreateTaskReque
 func (c *TaskUseCase) Search(ctx context.Context, request *model.SearchTaskRequest) ([]model.TaskResponse, int64, error) {
 	tx := c.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
-
+	
 	if err := c.Validate.Struct(request); err != nil {
 		c.Log.WithError(err).Error("error validate request body")
 		return nil, 0, model.ErrBadRequest
@@ -66,7 +66,7 @@ func (c *TaskUseCase) Search(ctx context.Context, request *model.SearchTaskReque
 	tasks, total, err := c.TaskRepository.Search(tx, request)
 	if err != nil {
 		c.Log.WithError(err).Error("error search task")
-		return nil, 0, model.ErrInternalServer
+		return nil, 0, model.ErrNotFound
 	}
 	if err := tx.Commit().Error; err != nil {
 		c.Log.WithError(err).Error("error search task")
