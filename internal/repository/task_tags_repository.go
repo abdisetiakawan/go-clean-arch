@@ -89,3 +89,15 @@ func (r *TaskTagRepository) SearchTaskTagRequestWithTagId(db *gorm.DB, request *
 
     return taskTags, count, nil
 }
+
+func (r *TaskTagRepository) CheckIsAdded(db *gorm.DB, taskTag *entity.TaskTag) error {
+    var count int64
+    if err := db.Table("task_tags").Where("task_id = ? AND tag_id = ?", taskTag.TaskId, taskTag.TagId).Count(&count).Error; err != nil {
+        r.Log.WithError(err).Error("failed to count task tags")
+        return err
+    }
+    if count > 0 {
+        return gorm.ErrRegistered
+    }
+    return nil
+}

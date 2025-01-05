@@ -39,6 +39,11 @@ func (c *TaskTagUseCase) Create(ctx context.Context, request *model.CreateTaskTa
 		TaskId: request.TaskId,
 		TagId: request.TagId,
 	}
+	// Memastikan hanya satu tag untuk satu task
+	if err := c.TaskTagRepository.CheckIsAdded(tx, taskTag); err != nil {
+		c.Log.WithError(err).Error("error check availability task tag")
+		return nil, err
+	}
 
 	if err := c.TaskTagRepository.CreateTaskTag(tx, taskTag, email); err != nil {
 		c.Log.WithError(err).Error("error create task tag")
