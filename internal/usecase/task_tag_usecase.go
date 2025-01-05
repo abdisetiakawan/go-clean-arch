@@ -40,7 +40,7 @@ func (c *TaskTagUseCase) Create(ctx context.Context, request *model.CreateTaskTa
 		TagId: request.TagId,
 	}
 	// Memastikan hanya satu tag untuk satu task
-	if err := c.TaskTagRepository.CheckIsAdded(tx, taskTag); err != nil {
+	if err := c.TaskTagRepository.CheckTaskTag(tx, taskTag); err != nil {
 		c.Log.WithError(err).Error("error check availability task tag")
 		return nil, err
 	}
@@ -110,4 +110,28 @@ func (c *TaskTagUseCase) SearchTaskTagRequestWithTagId(ctx context.Context, requ
 	}
 
 	return responses, total, nil
+}
+
+func (c *TaskTagUseCase) Delete(ctx context.Context, request *model.GetTaskTagForDelete) error {
+	tx := c.DB.WithContext(ctx).Begin()
+	defer tx.Rollback()
+
+	taskTag := new(entity.TaskTag)
+	if err := c.Validate.Struct(request); err != nil {
+		c.Log.WithError(err).Error("error validate request query")
+		return model.ErrBadRequest
+	}
+	if err := c.TaskTagRepository.CheckIsAdded(tx, taskTag, request); err != nil {
+		c.Log.WithError(err).Error("error check is added task tag")
+		return err
+	}
+	if err := c.TaskTagRepository.Delete(tx, taskTag); err != nil {
+		c.Log.WithError(err).Error("error delete task tag")
+		return err
+	}
+	if err := tx.Commit().Error; err != nil {
+		c.Log.WithError(err).Error("error delete task tag")
+		return model.ErrInternalServer
+	}
+	return nil
 }

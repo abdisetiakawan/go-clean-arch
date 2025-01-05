@@ -90,14 +90,21 @@ func (r *TaskTagRepository) SearchTaskTagRequestWithTagId(db *gorm.DB, request *
     return taskTags, count, nil
 }
 
-func (r *TaskTagRepository) CheckIsAdded(db *gorm.DB, taskTag *entity.TaskTag) error {
+func (r *TaskTagRepository) CheckTaskTag(db *gorm.DB, taskTag *entity.TaskTag) error {
     var count int64
-    if err := db.Table("task_tags").Where("task_id = ? AND tag_id = ?", taskTag.TaskId, taskTag.TagId).Count(&count).Error; err != nil {
+    if err := db.Table("task_tags").Where("task_id = ? AND tag_id = ?  ", taskTag.TaskId, taskTag.TagId).Count(&count).Error; err != nil {
         r.Log.WithError(err).Error("failed to count task tags")
         return err
     }
-    if count > 0 {
-        return gorm.ErrRegistered
+    if count == 0 {
+        return gorm.ErrRecordNotFound
     }
     return nil
+}
+
+func (r *TaskTagRepository) CheckIsAdded(db *gorm.DB, taskTag *entity.TaskTag, request *model.GetTaskTagForDelete) error {
+    return db.Table("task_tags").
+        Joins("JOIN tasks ON task_tags.task_id = tasks.id").
+        Where("task_tags.task_id = ? AND task_tags.tag_id = ? AND tasks.email = ?", request.TaskId, request.TagId, request.Email).
+        Take(taskTag).Error
 }

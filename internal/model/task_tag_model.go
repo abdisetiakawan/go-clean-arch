@@ -43,3 +43,9 @@ type TaskTagResult struct {
 	DueDate     string `json:"due_date"`
 	TagID       uint   `json:"tag_id"`
 }
+
+type GetTaskTagForDelete struct {
+	Email  string `json:"-" validate:"required"`
+	TaskId uint   `json:"-" validate:"required"`
+	TagId  uint   `json:"-" validate:"required"`
+}

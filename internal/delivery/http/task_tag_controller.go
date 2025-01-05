@@ -95,3 +95,28 @@ func (c *TaskTagController) ListByTagId(ctx *fiber.Ctx) error {
 
 	return ctx.JSON(model.WebResponse[[]model.TaskTagResult]{Paging: paging, Data: responses})
 }
+
+func (c *TaskTagController) Delete(ctx *fiber.Ctx) error {
+	auth := middleware.GetUser(ctx)
+	// konversi string ke uint
+	tagId, err := strconv.ParseUint(ctx.Params("tagId"), 10, 32)
+	if err != nil {
+		c.Log.Warnf("Invalid tag ID : %+v", err)
+		return model.ErrBadRequest
+	}
+	taskId, err := strconv.ParseUint(ctx.Params("taskId"), 10, 32)
+	if err != nil {
+		c.Log.Warnf("Invalid task ID : %+v", err)		
+		return model.ErrBadRequest
+	}
+	request := &model.GetTaskTagForDelete{
+		Email: auth.Email,
+		TaskId: uint(taskId),
+		TagId: uint(tagId),
+	}
+	if err = c.UseCase.Delete(ctx.UserContext(), request); err != nil {
+		c.Log.Warnf("Failed to delete task tag : %+v", err)
+		return err
+	}
+	return ctx.JSON(model.WebResponse[bool]{Data: true})
+}
