@@ -45,5 +45,5 @@ func (c *RouteConfig) SetupUserRoute() {
 
 	c.App.Post("/api/tasks/:taskId/tags", c.TaskTagController.Create)
 	c.App.Get("/api/taskswithtags", c.TaskTagController.List)
-
+	c.App.Get("/api/tags/:tagId/tasks", c.TaskTagController.ListByTagId)
 }
