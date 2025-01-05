@@ -27,7 +27,6 @@ func (c *RouteConfig) SetupAuthRoute() {
 
 func (c *RouteConfig) SetupUserRoute() {
 	c.App.Use(c.AuthMiddleware)
-	c.App.Delete("/api/users", c.UserController.Logout)
 	c.App.Patch("/api/users/_current", c.UserController.Update)
 	c.App.Get("/api/users/_current", c.UserController.Current)
 

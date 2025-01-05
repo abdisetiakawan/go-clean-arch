@@ -51,17 +51,6 @@ func (c *UserController) Login(ctx *fiber.Ctx) error {
 	return ctx.JSON(model.WebResponse[*model.UserResponse]{Data: response})
 }
 
-func (c *UserController) Logout(ctx *fiber.Ctx) error {
-	auth := middleware.GetUser(ctx)
-	request := &model.LogoutUserRequest{Email: auth.Email}
-	response, err := c.UseCase.Logout(ctx.UserContext(), request)
-	if err != nil {
-		c.Log.Warnf("Failed to logout user : %+v", err)
-		return model.ErrInternalServer
-	}
-	return ctx.JSON(model.WebResponse[bool]{Data: response})
-}
-
 func (c *UserController) Current(ctx *fiber.Ctx) error {
 	auth := middleware.GetUser(ctx)
 	request := &model.GetUserRequest{Email: auth.Email}

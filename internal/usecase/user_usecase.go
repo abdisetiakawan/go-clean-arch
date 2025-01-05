@@ -139,40 +139,6 @@ func (c *UserUseCase) Login(ctx context.Context, request *model.LoginUserRequest
     return converter.UserToResponse(user), nil
 }
 
-func (c *UserUseCase) Logout(ctx context.Context, request *model.LogoutUserRequest) (bool, error) {
-	tx := c.DB.WithContext(ctx).Begin()
-	defer tx.Rollback()
-
-	err := c.Validate.Struct(request)
-	if err != nil {
-		c.Log.Warnf("Failed to validate request body : %+v", err)
-		return false, model.ErrBadRequest
-	}
-
-	user := new(entity.User)
-
-	err = c.UserRepository.FindByEmail(tx, user, request.Email)
-	if err != nil {
-		c.Log.Warnf("Failed to find user : %+v", err)
-		return false, model.ErrInternalServer
-	}
-
-	user.Token = ""
-
-	err = c.UserRepository.Update(tx, user)
-	if err != nil {
-		c.Log.Warnf("Failed to update user : %+v", err)
-		return false, model.ErrInternalServer
-	}
-
-	err = tx.Commit().Error
-	if err != nil {
-		c.Log.Warnf("Failed to commit transaction : %+v", err)
-		return false, model.ErrInternalServer
-	}
-
-	return true, nil
-}
 
 func (c *UserUseCase) Update(ctx context.Context, request *model.UpdateUserRequest) (*model.UserResponse, error) {
 	tx := c.DB.WithContext(ctx).Begin()
