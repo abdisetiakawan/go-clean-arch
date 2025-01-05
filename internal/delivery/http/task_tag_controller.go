@@ -1,6 +1,7 @@
 package http
 
 import (
+	"math"
 	"strconv"
 
 	"github.com/abdisetiakawan/go-clean-arch/internal/delivery/http/middleware"
@@ -42,4 +43,26 @@ func (c *TaskTagController) Create(ctx *fiber.Ctx) error {
 		return err
 	}
 	return ctx.JSON(model.WebResponse[*model.TaskTagResponse]{Data: response})
+}
+
+func (c *TaskTagController) List(ctx *fiber.Ctx) error {
+	auth := middleware.GetUser(ctx)
+	request := &model.SearchTaskTagRequest{
+		Email: auth.Email,
+		Page: ctx.QueryInt("page", 1),
+		Size: ctx.QueryInt("size", 10),
+	}
+	responses, total, err := c.UseCase.Search(ctx.UserContext(), request)
+	if err != nil {
+		c.Log.Warnf("Failed to list task tags : %+v", err)
+		return err
+	}
+	paging := &model.PageMetadata{
+		Page: request.Page,
+		Size: request.Size,
+		TotalItem: total,
+		TotalPage: int64(math.Ceil(float64(total) / float64(request.Size))),
+		}
+
+	return ctx.JSON(model.WebResponse[[]model.TaskTagResult]{Paging: paging, Data: responses})
 }
