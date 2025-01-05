@@ -12,3 +12,14 @@ func TaskTagToResponse(taskTag *entity.TaskTag) *model.TaskTagResponse {
 		TagId:  taskTag.TagId,
 	}
 }
+
+func TaskWithTagsToResponse(taskWithTags *model.TaskTagResult) *model.TaskTagResult {
+	return &model.TaskTagResult{
+		ID:     taskWithTags.ID,
+		Title:  taskWithTags.Title,
+		Description: taskWithTags.Description,
+		TagID:  taskWithTags.TagID,
+		Status: taskWithTags.Status,
+		DueDate: taskWithTags.DueDate,
+	}
+}

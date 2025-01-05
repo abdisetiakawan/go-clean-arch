@@ -21,3 +21,18 @@ type TaskTagToResponse struct {
 	TaskId uint `json:"task_id"`
 	TagId  uint `json:"tag_id"`
 }
+
+type SearchTaskTagRequest struct {
+	Email string `json:"-" validate:"required"`
+	Page  int    `json:"page" validate:"min=1"`
+	Size  int    `json:"size" validate:"min=1,max=100"`
+}
+
+type TaskTagResult struct {
+	ID          uint   `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Status      string `json:"status"`
+	DueDate     string `json:"due_date"`
+	TagID       uint   `json:"tag_id"`
+}
