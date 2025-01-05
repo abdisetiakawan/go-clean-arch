@@ -28,6 +28,13 @@ type SearchTaskTagRequest struct {
 	Size  int    `json:"size" validate:"min=1,max=100"`
 }
 
+type SearchTaskTagRequestWithTagId struct {
+	Email string `json:"-" validate:"required"`
+	TagId uint   `json:"-" validate:"required"`
+	Page  int    `json:"page" validate:"min=1"`
+	Size  int    `json:"size" validate:"min=1,max=100"`
+}
+
 type TaskTagResult struct {
 	ID          uint   `json:"id"`
 	Title       string `json:"title"`

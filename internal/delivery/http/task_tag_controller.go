@@ -66,3 +66,32 @@ func (c *TaskTagController) List(ctx *fiber.Ctx) error {
 
 	return ctx.JSON(model.WebResponse[[]model.TaskTagResult]{Paging: paging, Data: responses})
 }
+
+func (c *TaskTagController) ListByTagId(ctx *fiber.Ctx) error {
+	auth := middleware.GetUser(ctx)
+	TagId := ctx.Params("tagId")
+	tagId, err := strconv.ParseUint(TagId, 10, 32)
+	if err != nil {
+		c.Log.Warnf("Invalid tag ID : %+v", err)
+		return model.ErrBadRequest
+	}
+	request := &model.SearchTaskTagRequestWithTagId{
+		Email: auth.Email,
+		TagId: uint(tagId),
+		Page: ctx.QueryInt("page", 1),
+		Size: ctx.QueryInt("size", 10),
+	}
+	responses, total, err := c.UseCase.SearchTaskTagRequestWithTagId(ctx.UserContext(), request)
+	if err != nil {
+		c.Log.Warnf("Failed to list task tags : %+v", err)
+		return err
+	}
+	paging := &model.PageMetadata{
+		Page: request.Page,
+		Size: request.Size,
+		TotalItem: total,
+		TotalPage: int64(math.Ceil(float64(total) / float64(request.Size))),
+		}
+
+	return ctx.JSON(model.WebResponse[[]model.TaskTagResult]{Paging: paging, Data: responses})
+}

@@ -80,3 +80,29 @@ func (c *TaskTagUseCase) Search(ctx context.Context, request *model.SearchTaskTa
 
 	return responses, total, nil
 }
+
+func (c *TaskTagUseCase) SearchTaskTagRequestWithTagId(ctx context.Context, request *model.SearchTaskTagRequestWithTagId) ([]model.TaskTagResult, int64, error) {
+	tx := c.DB.WithContext(ctx).Begin()
+	defer tx.Rollback()
+	
+	if err := c.Validate.Struct(request); err != nil {
+		c.Log.WithError(err).Error("error validate request query")
+		return nil, 0, model.ErrBadRequest
+	}
+	taskTags, total, err := c.TaskTagRepository.SearchTaskTagRequestWithTagId(tx, request)
+	if err != nil {
+		c.Log.WithError(err).Error("error search task tag request with tag id")
+		return nil, 0, err
+	}
+	if err := tx.Commit().Error; err != nil {
+	c.Log.WithError(err).Error("error search task tag request with tag id")
+	return nil, 0, model.ErrInternalServer
+	}
+
+	responses := make([]model.TaskTagResult, len(taskTags))
+	for i, taskTag := range taskTags {
+		responses[i] = *converter.TaskWithTagsToResponse(&taskTag)
+	}
+
+	return responses, total, nil
+}

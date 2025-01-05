@@ -66,3 +66,26 @@ func (r *TaskTagRepository) SearchTaskTag(db *gorm.DB, request *model.SearchTask
 
     return taskTags, count, nil
 }
+
+func (r *TaskTagRepository) SearchTaskTagRequestWithTagId(db *gorm.DB, request *model.SearchTaskTagRequestWithTagId) ([]model.TaskTagResult, int64, error) {
+    var count int64
+    var taskTags []model.TaskTagResult
+    query := db.Table("tasks").
+    Select("tasks.id, tasks.title, tasks.description, tasks.status, tasks.due_date, task_tags.tag_id").
+    Joins("INNER JOIN task_tags ON tasks.id = task_tags.task_id").
+    Where("tasks.email = ?", request.Email).
+    Where("task_tags.tag_id = ?", request.TagId)
+    if err := query.Count(&count).Error; err != nil {
+        r.Log.WithError(err).Error("failed to count tasks")
+        return nil, 0, err
+    }
+    if count == 0 {
+        return nil, 0, gorm.ErrRecordNotFound
+    }
+    if err := query.Offset((request.Page - 1) * request.Size).Limit(request.Size).Scan(&taskTags).Error; err != nil {
+        r.Log.WithError(err).Error("failed to fetch task tags")
+        return nil, 0, err
+    }
+
+    return taskTags, count, nil
+}
