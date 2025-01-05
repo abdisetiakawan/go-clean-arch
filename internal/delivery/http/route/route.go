@@ -44,6 +44,6 @@ func (c *RouteConfig) SetupUserRoute() {
 	c.App.Delete("/api/tags/:tagId", c.TagsController.Delete)
 
 	c.App.Post("/api/tasks/:taskId/tags", c.TaskTagController.Create)
-	// c.App.Get("/api/tasks/:taskId/tags", c.TaskTagController.List)
+	c.App.Get("/api/taskswithtags", c.TaskTagController.List)
 
 }
