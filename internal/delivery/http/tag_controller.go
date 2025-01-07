@@ -34,7 +34,7 @@ func (c *TagsController) Create(ctx *fiber.Ctx) error {
 	if err != nil {
 		c.Log.Warnf("failed to create tag: %+v", err)
 	}
-	return ctx.JSON(model.WebResponse[*model.TagResponse]{Data: response})
+	return ctx.Status(fiber.StatusCreated).JSON(model.WebResponse[*model.TagResponse]{Data: response})
 }
 
 func (c *TagsController) List(ctx *fiber.Ctx) error {
@@ -58,7 +58,7 @@ func (c *TagsController) List(ctx *fiber.Ctx) error {
 		TotalPage: int64(math.Ceil(float64(total) / float64(request.Size))),
 	}
 
-	return ctx.JSON(model.WebResponse[[]model.TagResponse]{Paging: paging, Data: responses})
+	return ctx.Status(fiber.StatusOK).JSON(model.WebResponse[[]model.TagResponse]{Paging: paging, Data: responses})
 }
 
 func (c *TagsController) Get(ctx *fiber.Ctx) error {
@@ -73,7 +73,7 @@ func (c *TagsController) Get(ctx *fiber.Ctx) error {
 		c.Log.Warnf("Failed to get tag : %+v", err)
 		return err
 	}
-	return ctx.JSON(model.WebResponse[*model.TagResponse]{Data: response})
+	return ctx.Status(fiber.StatusOK).JSON(model.WebResponse[*model.TagResponse]{Data: response})
 }
 
 func (c *TagsController) Update(ctx *fiber.Ctx) error {
@@ -90,7 +90,7 @@ func (c *TagsController) Update(ctx *fiber.Ctx) error {
 		c.Log.Warnf("Failed to update tag : %+v", err)
 		return err
 	}
-	return ctx.JSON(model.WebResponse[*model.TagResponse]{Data: response})
+	return ctx.Status(fiber.StatusOK).JSON(model.WebResponse[*model.TagResponse]{Data: response})
 }
 
 
@@ -106,5 +106,5 @@ func (c *TagsController) Delete(ctx *fiber.Ctx) error {
 		return err
 	}
 	
-	return ctx.JSON(model.WebResponse[bool]{Data: true})
+	return ctx.Status(fiber.StatusNoContent).JSON(model.WebResponse[bool]{Data: true})
 }

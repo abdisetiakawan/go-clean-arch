@@ -33,7 +33,7 @@ func (c *UserController) Register(ctx *fiber.Ctx) error {
 		c.Log.Warnf("Failed to register user : %+v", err)
 		return err
 	}
-	return ctx.JSON(model.WebResponse[*model.UserResponse]{Data: response})
+	return ctx.Status(fiber.StatusCreated).JSON(model.WebResponse[*model.UserResponse]{Data: response})
 }
 
 func (c *UserController) Login(ctx *fiber.Ctx) error {
@@ -48,7 +48,7 @@ func (c *UserController) Login(ctx *fiber.Ctx) error {
 		c.Log.Warnf("Failed to login user : %+v", err)
 		return err
 	}
-	return ctx.JSON(model.WebResponse[*model.UserResponse]{Data: response})
+	return ctx.Status(fiber.StatusOK).JSON(model.WebResponse[*model.UserResponse]{Data: response})
 }
 
 func (c *UserController) Current(ctx *fiber.Ctx) error {
@@ -59,7 +59,7 @@ func (c *UserController) Current(ctx *fiber.Ctx) error {
 		c.Log.Warnf("Failed to get current user : %+v", err)
 		return model.ErrInternalServer
 	}
-	return ctx.JSON(model.WebResponse[*model.UserResponse]{Data: response})
+	return ctx.Status(fiber.StatusOK).JSON(model.WebResponse[*model.UserResponse]{Data: response})
 }
 
 func (c *UserController) Update(ctx *fiber.Ctx) error {
@@ -76,5 +76,5 @@ func (c *UserController) Update(ctx *fiber.Ctx) error {
 		c.Log.Warnf("Failed to update user : %+v", err)
 		return model.ErrInternalServer
 	}
-	return ctx.JSON(model.WebResponse[*model.UserResponse]{Data: response})
+	return ctx.Status(fiber.StatusOK).JSON(model.WebResponse[*model.UserResponse]{Data: response})
 }
