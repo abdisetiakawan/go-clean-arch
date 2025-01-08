@@ -2,6 +2,14 @@
 
 Proyek ini adalah implementasi dari arsitektur bersih (clean architecture) menggunakan bahasa pemrograman Go. Proyek ini menggunakan beberapa library seperti Fiber untuk web framework, GORM untuk ORM, dan Viper untuk manajemen konfigurasi.
 
+## Tech Stack
+
+- **Go Fiber**: Web framework yang cepat dan ringan untuk Go
+- **GORM**: ORM (Object Relational Mapping) untuk Go
+- **MySQL**: Database utama untuk penyimpanan data
+- **Redis**: In-memory data store untuk caching
+- **Viper**: Library untuk manajemen konfigurasi
+
 ## Arsitektur Proyek
 
 Proyek ini diorganisir dengan beberapa lapisan utama:
@@ -24,388 +32,409 @@ Pastikan Anda telah menginstal Go dan memiliki akses ke database MySQL.
 ### Langkah-langkah
 
 1. Clone repository ini:
-    ```sh
-    git clone https://github.com/abdisetiakawan/go-clean-arch.git
-    cd go-clean-arch
-    ```
 
-2. Buat file [config.json](http://_vscodecontentref_/0) di root directory dengan konfigurasi berikut:
-    ```json
-    {
-        "app": {
-            "name": "Go Clean Architecture"
-        },
-        "web": {
-            "port": 8080,
-            "prefork": false
-        },
-        "database": {
-            "username": "your_db_username",
-            "password": "your_db_password",
-            "host": "localhost",
-            "port": 3306,
-            "name": "your_db_name",
-            "pool": {
-                "idle": 10,
-                "max": 100,
-                "lifetime": 300
-            }
-        },
-        "log": {
-            "level": 4
-        },
-        "redis": {
-            "addr": "localhost:6379",
-            "password": "",
-            "db": 0
-       },
-        "credentials": {
-            "accesssecret": "your_access_secret",
-            "refreshsecret": "your_refresh_secret"
-        }
-    }
-    ```
+   ```sh
+   git clone https://github.com/abdisetiakawan/go-clean-arch.git
+   cd go-clean-arch
+   ```
+
+2. Buat file config.json di root directory dengan konfigurasi berikut:
+
+   ```json
+   {
+     "app": {
+       "name": "Go Clean Architecture"
+     },
+     "web": {
+       "port": 8080,
+       "prefork": false
+     },
+     "database": {
+       "username": "your_db_username",
+       "password": "your_db_password",
+       "host": "localhost",
+       "port": 3306,
+       "name": "your_db_name",
+       "pool": {
+         "idle": 10,
+         "max": 100,
+         "lifetime": 300
+       }
+     },
+     "log": {
+       "level": 4
+     },
+     "redis": {
+       "addr": "localhost:6379",
+       "password": "",
+       "db": 0
+     },
+     "credentials": {
+       "accesssecret": "your_access_secret",
+       "refreshsecret": "your_refresh_secret"
+     }
+   }
+   ```
 
 3. Jalankan migrasi database:
-    ```sh
-    go run cmd/migrate/main.go
-    ```
+
+   ```sh
+   migrate -database "mysql://root:@tcp(localhost:3306)/your_db_name?charset=utf8mb4&parseTime=True&loc=Local" -path db/migrations up
+   ```
 
 4. Jalankan aplikasi:
-    ```sh
-    go run cmd/web/main.go
-    ```
+   ```sh
+   go run cmd/web/main.go
+   ```
 
-Aplikasi akan berjalan di [http://localhost:8080](http://_vscodecontentref_/1).
+Aplikasi akan berjalan di http://localhost:8080.
 
 ## Request dan Response
 
 ### User
 
 #### Register User
+
 - **Endpoint**: `POST /api/users`
 - **Request Body**:
-    ```json
-    {
-        "name": "John Doe",
-        "email": "john.doe@example.com",
-        "password": "password123"
-    }
-    ```
+  ```json
+  {
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "password": "password123"
+  }
+  ```
 - **Response**:
-    ```json
-    {
-        "data": {
-            "name": "John Doe",
-            "email": "john.doe@example.com",
-            "access_token": "access_token",
-            "refresh_token": "refresh_token"
-        }
+  ```json
+  {
+    "data": {
+      "name": "John Doe",
+      "email": "john.doe@example.com",
+      "access_token": "access_token",
+      "refresh_token": "refresh_token"
     }
-    ```
+  }
+  ```
 
 #### Login User
+
 - **Endpoint**: `POST /api/users/_login`
 - **Request Body**:
-    ```json
-    {
-        "email": "john.doe@example.com",
-        "password": "password123"
-    }
-    ```
+  ```json
+  {
+    "email": "john.doe@example.com",
+    "password": "password123"
+  }
+  ```
 - **Response**:
-    ```json
-    {
-        "data": {
-            "name": "John Doe",
-            "email": "john.doe@example.com",
-            "access_token": "access_token",
-            "refresh_token": "refresh_token"
-        }
+  ```json
+  {
+    "data": {
+      "name": "John Doe",
+      "email": "john.doe@example.com",
+      "access_token": "access_token",
+      "refresh_token": "refresh_token"
     }
-    ```
+  }
+  ```
 
 #### Get Current User
+
 - **Endpoint**: `GET /api/users/_current`
 - **Response**:
-    ```json
-    {
-        "data": {
-            "name": "John Doe",
-            "email": "john.doe@example.com"
-        }
+  ```json
+  {
+    "data": {
+      "name": "John Doe",
+      "email": "john.doe@example.com"
     }
-    ```
+  }
+  ```
 
 #### Update User
+
 - **Endpoint**: `PATCH /api/users/_current`
 - **Request Body**:
-    ```json
-    {
-        "name": "John Doe Updated",
-        "password": "newpassword123"
-    }
-    ```
+  ```json
+  {
+    "name": "John Doe Updated",
+    "password": "newpassword123"
+  }
+  ```
 - **Response**:
-    ```json
-    {
-        "data": {
-            "name": "John Doe Updated",
-            "email": "john.doe@example.com"
-        }
+  ```json
+  {
+    "data": {
+      "name": "John Doe Updated",
+      "email": "john.doe@example.com"
     }
-    ```
+  }
+  ```
 
 ### Task
 
 #### Create Task
+
 - **Endpoint**: `POST /api/tasks`
 - **Request Body**:
-    ```json
-    {
+  ```json
+  {
+    "title": "New Task",
+    "description": "Task description",
+    "status": "pending",
+    "due_date": "2023-12-31"
+  }
+  ```
+- **Response**:
+  ```json
+  {
+    "data": {
+      "id": 1,
+      "title": "New Task",
+      "description": "Task description",
+      "status": "pending",
+      "due_date": "2023-12-31"
+    }
+  }
+  ```
+
+#### List Tasks
+
+- **Endpoint**: `GET /api/tasks`
+- **Response**:
+  ```json
+  {
+    "data": [
+      {
+        "id": 1,
         "title": "New Task",
         "description": "Task description",
         "status": "pending",
         "due_date": "2023-12-31"
+      }
+    ],
+    "paging": {
+      "page": 1,
+      "size": 10,
+      "total_item": 1,
+      "total_page": 1
     }
-    ```
-- **Response**:
-    ```json
-    {
-        "data": {
-            "id": 1,
-            "title": "New Task",
-            "description": "Task description",
-            "status": "pending",
-            "due_date": "2023-12-31"
-        }
-    }
-    ```
-
-#### List Tasks
-- **Endpoint**: `GET /api/tasks`
-- **Response**:
-    ```json
-    {
-        "data": [
-            {
-                "id": 1,
-                "title": "New Task",
-                "description": "Task description",
-                "status": "pending",
-                "due_date": "2023-12-31"
-            }
-        ],
-        "paging": {
-            "page": 1,
-            "size": 10,
-            "total_item": 1,
-            "total_page": 1
-        }
-    }
-    ```
+  }
+  ```
 
 #### Get Task
+
 - **Endpoint**: `GET /api/tasks/:taskId`
 - **Response**:
-    ```json
-    {
-        "data": {
-            "id": 1,
-            "title": "New Task",
-            "description": "Task description",
-            "status": "pending",
-            "due_date": "2023-12-31"
-        }
+  ```json
+  {
+    "data": {
+      "id": 1,
+      "title": "New Task",
+      "description": "Task description",
+      "status": "pending",
+      "due_date": "2023-12-31"
     }
-    ```
+  }
+  ```
 
 #### Update Task
+
 - **Endpoint**: `PUT /api/tasks/:taskId`
 - **Request Body**:
-    ```json
-    {
-        "title": "Updated Task",
-        "description": "Updated description",
-        "status": "in_progress",
-        "due_date": "2023-12-31"
-    }
-    ```
+  ```json
+  {
+    "title": "Updated Task",
+    "description": "Updated description",
+    "status": "in_progress",
+    "due_date": "2023-12-31"
+  }
+  ```
 - **Response**:
-    ```json
-    {
-        "data": {
-            "id": 1,
-            "title": "Updated Task",
-            "description": "Updated description",
-            "status": "in_progress",
-            "due_date": "2023-12-31"
-        }
+  ```json
+  {
+    "data": {
+      "id": 1,
+      "title": "Updated Task",
+      "description": "Updated description",
+      "status": "in_progress",
+      "due_date": "2023-12-31"
     }
-    ```
+  }
+  ```
 
 #### Delete Task
+
 - **Endpoint**: `DELETE /api/tasks/:taskId`
 - **Response**:
-    ```json
-    {
-        "data": true
-    }
-    ```
+  ```json
+  {
+    "data": true
+  }
+  ```
 
 ### Tag
 
 #### Create Tag
+
 - **Endpoint**: `POST /api/tags`
 - **Request Body**:
-    ```json
-    {
-        "name": "New Tag"
-    }
-    ```
+  ```json
+  {
+    "name": "New Tag"
+  }
+  ```
 - **Response**:
-    ```json
-    {
-        "data": {
-            "id": 1,
-            "name": "New Tag"
-        }
+  ```json
+  {
+    "data": {
+      "id": 1,
+      "name": "New Tag"
     }
-    ```
+  }
+  ```
 
 #### List Tags
+
 - **Endpoint**: `GET /api/tags`
 - **Response**:
-    ```json
-    {
-        "data": [
-            {
-                "id": 1,
-                "name": "New Tag"
-            }
-        ],
-        "paging": {
-            "page": 1,
-            "size": 10,
-            "total_item": 1,
-            "total_page": 1
-        }
+  ```json
+  {
+    "data": [
+      {
+        "id": 1,
+        "name": "New Tag"
+      }
+    ],
+    "paging": {
+      "page": 1,
+      "size": 10,
+      "total_item": 1,
+      "total_page": 1
     }
-    ```
+  }
+  ```
 
 #### Get Tag
+
 - **Endpoint**: `GET /api/tags/:tagId`
 - **Response**:
-    ```json
-    {
-        "data": {
-            "id": 1,
-            "name": "New Tag"
-        }
+  ```json
+  {
+    "data": {
+      "id": 1,
+      "name": "New Tag"
     }
-    ```
+  }
+  ```
 
 #### Update Tag
+
 - **Endpoint**: `PUT /api/tags/:tagId`
 - **Request Body**:
-    ```json
-    {
-        "name": "Updated Tag"
-    }
-    ```
+  ```json
+  {
+    "name": "Updated Tag"
+  }
+  ```
 - **Response**:
-    ```json
-    {
-        "data": {
-            "id": 1,
-            "name": "Updated Tag"
-        }
+  ```json
+  {
+    "data": {
+      "id": 1,
+      "name": "Updated Tag"
     }
-    ```
+  }
+  ```
 
 #### Delete Tag
+
 - **Endpoint**: `DELETE /api/tags/:tagId`
 - **Response**:
-    ```json
-    {
-        "data": true
-    }
-    ```
+  ```json
+  {
+    "data": true
+  }
+  ```
 
 ### Task Tag
 
 #### Create Task Tag
+
 - **Endpoint**: `POST /api/tasks/:taskId/tags`
 - **Request Body**:
-    ```json
-    {
-        "tag_id": 1
-    }
-    ```
+  ```json
+  {
+    "tag_id": 1
+  }
+  ```
 - **Response**:
-    ```json
-    {
-        "data": {
-            "id": 1,
-            "taskId": 1,
-            "tag_id": 1
-        }
+  ```json
+  {
+    "data": {
+      "id": 1,
+      "taskId": 1,
+      "tag_id": 1
     }
-    ```
+  }
+  ```
 
 #### List Task Tags
+
 - **Endpoint**: `GET /api/taskswithtags`
 - **Response**:
-    ```json
-    {
-        "data": [
-            {
-                "id": 1,
-                "title": "New Task",
-                "description": "Task description",
-                "status": "pending",
-                "due_date": "2023-12-31",
-                "tag_id": 1
-            }
-        ],
-        "paging": {
-            "page": 1,
-            "size": 10,
-            "total_item": 1,
-            "total_page": 1
-        }
+  ```json
+  {
+    "data": [
+      {
+        "id": 1,
+        "title": "New Task",
+        "description": "Task description",
+        "status": "pending",
+        "due_date": "2023-12-31",
+        "tag_id": 1
+      }
+    ],
+    "paging": {
+      "page": 1,
+      "size": 10,
+      "total_item": 1,
+      "total_page": 1
     }
-    ```
+  }
+  ```
 
 #### List Tasks by Tag ID
+
 - **Endpoint**: `GET /api/tags/:tagId/tasks`
 - **Response**:
-    ```json
-    {
-        "data": [
-            {
-                "id": 1,
-                "title": "New Task",
-                "description": "Task description",
-                "status": "pending",
-                "due_date": "2023-12-31",
-                "tag_id": 1
-            }
-        ],
-        "paging": {
-            "page": 1,
-            "size": 10,
-            "total_item": 1,
-            "total_page": 1
-        }
+  ```json
+  {
+    "data": [
+      {
+        "id": 1,
+        "title": "New Task",
+        "description": "Task description",
+        "status": "pending",
+        "due_date": "2023-12-31",
+        "tag_id": 1
+      }
+    ],
+    "paging": {
+      "page": 1,
+      "size": 10,
+      "total_item": 1,
+      "total_page": 1
     }
-    ```
+  }
+  ```
 
 #### Delete Task Tag
+
 - **Endpoint**: `DELETE /api/tasks/:taskId/tags/:tagId`
 - **Response**:
-    ```json
-    {
-        "data": true
-    }
-    ```
+  ```json
+  {
+    "data": true
+  }
+  ```
