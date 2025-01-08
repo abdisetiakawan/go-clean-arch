@@ -19,16 +19,16 @@ type UserUseCase struct {
     Log            *logrus.Logger
     Validate       *validator.Validate
     UserRepository *repository.UserRepository
-    Helper         *helper.Helper
+    Jwt            *helper.JwtHelper
 }
 
-func NewUserUseCase(db *gorm.DB, log *logrus.Logger, validate *validator.Validate, userRepository *repository.UserRepository, helper *helper.Helper) *UserUseCase {
+func NewUserUseCase(db *gorm.DB, log *logrus.Logger, validate *validator.Validate, userRepository *repository.UserRepository, jwt *helper.JwtHelper) *UserUseCase {
     return &UserUseCase{
         DB:             db,
         Log:            log,
         Validate:       validate,
         UserRepository: userRepository,
-        Helper:         helper,
+        Jwt:            jwt,
     }
 }
 
@@ -56,7 +56,7 @@ func (c *UserUseCase) Create(ctx context.Context, request *model.CreateUserReque
         c.Log.Warnf("Failed to hash password : %+v", err)
         return nil, model.ErrInternalServer
     }
-    access_token, refreshToken, err := (*c.Helper).GenerateTokenUser(model.UserResponse{
+    access_token, refreshToken, err := c.Jwt.GenerateTokenUser(model.UserResponse{
 		Name:  request.Name,
 		Email: request.Email,
 	})
@@ -112,7 +112,7 @@ func (c *UserUseCase) Login(ctx context.Context, request *model.LoginUserRequest
         return nil, model.ErrInvalidCredentials
     }
 
-    accessToken, refreshToken, err := (*c.Helper).GenerateTokenUser(model.UserResponse{
+    accessToken, refreshToken, err := c.Jwt.GenerateTokenUser(model.UserResponse{
         Name:  user.Name,
         Email: user.Email,
     })
