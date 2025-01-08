@@ -2,6 +2,7 @@ package helper
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -25,4 +26,12 @@ func (c *CacheHelper) Get(ctx context.Context, key string) (string, error) {
 
 func (c *CacheHelper) Delete(ctx context.Context, key string) error {
 	return c.client.Del(ctx, key).Err()
+}
+
+func (c *CacheHelper) GetAndUnmarshal(ctx context.Context, key string, value interface{}) error {
+	cachedData, err := c.Get(ctx, key)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal([]byte(cachedData), value)
 }
