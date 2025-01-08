@@ -196,5 +196,5 @@ func (c *TaskUseCase) Update(ctx context.Context, request *model.UpdateTaskReque
     taskResponseJSON, _ := json.Marshal(taskResponse)
     c.Cache.Set(ctx, "task:"+request.ID, taskResponseJSON, 1*time.Minute)
 
-	return converter.TaskToResponse(task), nil
+	return taskResponse, nil
 }
