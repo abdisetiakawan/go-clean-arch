@@ -2,8 +2,11 @@ package usecase
 
 import (
 	"context"
+	"encoding/json"
+	"time"
 
 	"github.com/abdisetiakawan/go-clean-arch/internal/entity"
+	"github.com/abdisetiakawan/go-clean-arch/internal/helper"
 	"github.com/abdisetiakawan/go-clean-arch/internal/model"
 	"github.com/abdisetiakawan/go-clean-arch/internal/model/converter"
 	"github.com/abdisetiakawan/go-clean-arch/internal/repository"
@@ -17,14 +20,16 @@ type TaskUseCase struct {
 	Log            *logrus.Logger
 	Validate       *validator.Validate
 	TaskRepository *repository.TaskRepository
+	Cache 		   *helper.CacheHelper
 }
 
-func NewTaskUseCase(db *gorm.DB, logger *logrus.Logger, validate *validator.Validate, taskRepository *repository.TaskRepository) *TaskUseCase {
+func NewTaskUseCase(db *gorm.DB, logger *logrus.Logger, validate *validator.Validate, taskRepository *repository.TaskRepository, cache *helper.CacheHelper) *TaskUseCase {
 	return &TaskUseCase{
 		DB: db,
 		Log: logger,
 		Validate: validate,
 		TaskRepository: taskRepository,
+		Cache: cache,
 	}
 }
 
@@ -56,6 +61,15 @@ func (c *TaskUseCase) Create(ctx context.Context, request *model.CreateTaskReque
 }
 
 func (c *TaskUseCase) Search(ctx context.Context, request *model.SearchTaskRequest) ([]model.TaskResponse, int64, error) {
+	cacheKey := "tasks:search:" + request.Email
+    var cachedData struct {
+        Responses []model.TaskResponse
+        Total     int64
+    }
+    if err := c.Cache.GetAndUnmarshal(ctx, cacheKey, &cachedData); err == nil {
+        return cachedData.Responses, cachedData.Total, nil
+    }
+	
 	tx := c.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 	
@@ -77,10 +91,21 @@ func (c *TaskUseCase) Search(ctx context.Context, request *model.SearchTaskReque
 		task.Email = ""
 		responses[i] = *converter.TaskToResponse(&task)
 	}
+
+	cachedData.Responses = responses
+    cachedData.Total = total
+    cachedDataJSON, _ := json.Marshal(cachedData)
+    c.Cache.Set(ctx, cacheKey, cachedDataJSON, 1*time.Minute)
+
 	return responses, total, nil
 }
 
 func (c *TaskUseCase) Get(ctx context.Context, request *model.GetTaskRequest) (*model.TaskResponse, error) {
+	var taskResponse model.TaskResponse
+    cacheKey := "task:" + request.ID
+    if err := c.Cache.GetAndUnmarshal(ctx, cacheKey, &taskResponse); err == nil {
+        return &taskResponse, nil
+	}
 	tx := c.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
@@ -97,7 +122,10 @@ func (c *TaskUseCase) Get(ctx context.Context, request *model.GetTaskRequest) (*
 		c.Log.WithError(err).Error("error search task")
 		return nil, model.ErrInternalServer
 	}
-	return converter.TaskToResponse(task), nil
+	taskResponse = *converter.TaskToResponse(task)
+	taskResponseJSON, _ := json.Marshal(taskResponse)
+	c.Cache.Set(ctx, cacheKey, taskResponseJSON, 1*time.Minute)
+	return &taskResponse, nil
 }
 
 func (c *TaskUseCase) Delete(ctx context.Context, request *model.GetTaskRequest) error {
@@ -125,6 +153,7 @@ func (c *TaskUseCase) Delete(ctx context.Context, request *model.GetTaskRequest)
 		return model.ErrInternalServer
 	}
 
+	c.Cache.Delete(ctx, "task:"+request.ID)
 	return nil
 }
 
@@ -162,6 +191,10 @@ func (c *TaskUseCase) Update(ctx context.Context, request *model.UpdateTaskReque
 		c.Log.WithError(err).Error("error update task")
 		return nil, model.ErrInternalServer
 	}
+
+	taskResponse := converter.TaskToResponse(task)
+    taskResponseJSON, _ := json.Marshal(taskResponse)
+    c.Cache.Set(ctx, "task:"+request.ID, taskResponseJSON, 1*time.Minute)
 
 	return converter.TaskToResponse(task), nil
 }
