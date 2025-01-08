@@ -2,8 +2,11 @@ package usecase
 
 import (
 	"context"
+	"encoding/json"
+	"time"
 
 	"github.com/abdisetiakawan/go-clean-arch/internal/entity"
+	"github.com/abdisetiakawan/go-clean-arch/internal/helper"
 	"github.com/abdisetiakawan/go-clean-arch/internal/model"
 	"github.com/abdisetiakawan/go-clean-arch/internal/model/converter"
 	"github.com/abdisetiakawan/go-clean-arch/internal/repository"
@@ -17,14 +20,16 @@ type TagUseCase struct {
 	Log *logrus.Logger
 	Validate *validator.Validate
 	TagRepository *repository.TagRepository
+	Cache *helper.CacheHelper
 }
 
-func NewTagUseCase(db *gorm.DB, log *logrus.Logger, validate *validator.Validate, tagRepository *repository.TagRepository) *TagUseCase {
+func NewTagUseCase(db *gorm.DB, log *logrus.Logger, validate *validator.Validate, tagRepository *repository.TagRepository, cache *helper.CacheHelper) *TagUseCase {
 	return &TagUseCase{
 		DB: db,
 		Log: log,
 		Validate: validate,
 		TagRepository: tagRepository,
+		Cache: cache,
 	}
 }
 
@@ -53,6 +58,15 @@ func (c *TagUseCase) Create(ctx context.Context, request *model.CreateTagRequest
 }
 
 func (c *TagUseCase) Search(ctx context.Context, request *model.SearchTagRequest) ([]model.TagResponse, int64, error) {
+	cacheKey := "tags:search:" + request.Email
+	var cachedData struct {
+		Responses []model.TagResponse
+		Total int64
+	}
+	if err := c.Cache.GetAndUnmarshal(ctx, cacheKey, &cachedData); err == nil {
+		return cachedData.Responses, cachedData.Total, nil
+	}
+
 	tx := c.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
@@ -74,10 +88,22 @@ func (c *TagUseCase) Search(ctx context.Context, request *model.SearchTagRequest
 		tag.Email = ""
 		responses[i] = *converter.TagToResponse(&tag)
 	} 
+
+	cachedData.Responses = responses
+	cachedData.Total = total
+	cachedDataJSON, _ := json.Marshal(cachedData)
+	c.Cache.Set(ctx, cacheKey, cachedDataJSON, 1*time.Minute)
+	
 	return responses, total, nil
 }
 
 func (c *TagUseCase) Get(ctx context.Context, request *model.GetTagRequest) (*model.TagResponse, error) {
+	var tagResponse model.TagResponse
+	cacheKey := "tags:" + request.ID
+	if err := c.Cache.GetAndUnmarshal(ctx, cacheKey, &tagResponse); err == nil {
+		return &tagResponse, nil
+	}
+	
 	tx := c.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
@@ -94,7 +120,12 @@ func (c *TagUseCase) Get(ctx context.Context, request *model.GetTagRequest) (*mo
 		c.Log.WithError(err).Error("error search tag")
 		return nil, model.ErrInternalServer
 	}
-	return converter.TagToResponse(tag), nil
+
+	tagResponse = *converter.TagToResponse(tag)
+	tagResponseJSON, _ := json.Marshal(tagResponse)
+	c.Cache.Set(ctx, cacheKey, tagResponseJSON, 1*time.Minute)
+	
+	return &tagResponse, nil
 }
 
 func (c *TagUseCase) Update(ctx context.Context, request *model.UpdateTagRequest) (*model.TagResponse, error) {
@@ -123,7 +154,11 @@ func (c *TagUseCase) Update(ctx context.Context, request *model.UpdateTagRequest
 		return nil, model.ErrInternalServer
 	}
 
-	return converter.TagToResponse(tag), nil
+	tagResponse := converter.TagToResponse(tag)
+	tagResponseJSON, _ := json.Marshal(tagResponse)
+	c.Cache.Set(ctx, "tags:"+request.ID, tagResponseJSON, 1*time.Minute)
+	
+	return tagResponse, nil
 }
 
 func (c *TagUseCase) Delete(ctx context.Context, request *model.GetTagRequest) error {
@@ -150,6 +185,8 @@ func (c *TagUseCase) Delete(ctx context.Context, request *model.GetTagRequest) e
 		c.Log.WithError(err).Error("error delete tag")
 		return model.ErrInternalServer
 	}
+
+	c.Cache.Delete(ctx, "tags:"+request.ID)
 
 	return nil
 }
