@@ -24,4 +24,5 @@ var (
     ErrBadRequest        = NewApiError(fiber.StatusBadRequest, "Invalid request")
     ErrInternalServer    = NewApiError(fiber.StatusInternalServerError, "Internal server error")
     ErrNotFound          = NewApiError(fiber.StatusNotFound, "Resource not found")
+    ErrConflict = NewApiError(fiber.StatusConflict, "Conflict")
 )
