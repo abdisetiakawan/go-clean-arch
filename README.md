@@ -54,6 +54,11 @@ Pastikan Anda telah menginstal Go dan memiliki akses ke database MySQL.
         "log": {
             "level": 4
         },
+        "redis": {
+            "addr": "localhost:6379",
+            "password": "",
+            "db": 0
+       },
         "credentials": {
             "accesssecret": "your_access_secret",
             "refreshsecret": "your_refresh_secret"
