@@ -109,5 +109,5 @@ func (c *TaskController) Delete(ctx *fiber.Ctx) error {
 		return err
 	}
 	
-	return ctx.Status(fiber.StatusNoContent).JSON(model.WebResponse[bool]{Data: true})
+	return ctx.SendStatus(fiber.StatusNoContent)
 }

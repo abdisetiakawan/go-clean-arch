@@ -118,5 +118,5 @@ func (c *TaskTagController) Delete(ctx *fiber.Ctx) error {
 		c.Log.Warnf("Failed to delete task tag : %+v", err)
 		return err
 	}
-	return ctx.Status(fiber.StatusNoContent).JSON(model.WebResponse[bool]{Data: true})
+	return ctx.SendStatus(fiber.StatusNoContent)
 }
