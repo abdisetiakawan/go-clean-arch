@@ -20,12 +20,13 @@ type BootstrapConfig struct {
     Log      *logrus.Logger
     Validate *validator.Validate
     Config   *viper.Viper
-    Help     *helper.Helper
+    Jwt      *helper.JwtHelper
+    Cache    *helper.CacheHelper
 }
 
 func Bootstrap(config *BootstrapConfig) {
     userRepository := repository.NewUserRepository(config.Log)
-    userUseCase := usecase.NewUserUseCase(config.DB, config.Log, config.Validate, userRepository, config.Help)
+    userUseCase := usecase.NewUserUseCase(config.DB, config.Log, config.Validate, userRepository, config.Jwt)
     userController := http.NewUserController(userUseCase, config.Log)
 
     taskRepository := repository.NewTaskRepository(config.Log)

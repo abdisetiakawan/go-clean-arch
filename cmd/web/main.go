@@ -13,7 +13,9 @@ func main() {
     db := config.NewDatabase(viperConfig, log)
     validator := config.NewValidator(viperConfig)
     app := config.NewFiber(viperConfig)
-    helper := helper.NewHelper(viperConfig)
+    jwt := helper.NewJWTHelper(viperConfig)
+    redisClient := config.NewRedisClient(viperConfig, log)
+    cache := helper.NewCacheHelper(redisClient)
 
     config.Bootstrap(&config.BootstrapConfig{
         DB:       db,
@@ -21,7 +23,8 @@ func main() {
         Log:      log,
         Validate: validator,
         Config:   viperConfig,
-        Help:     &helper,
+        Jwt:      jwt,
+        Cache:    cache,
     })
 
     webPort := viperConfig.GetInt("web.port")
