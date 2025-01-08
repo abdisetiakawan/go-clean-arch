@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-type helper struct {
+type JwtHelper struct {
     config *viper.Viper
 }
 
@@ -18,13 +18,13 @@ type AuthCustomClaims struct {
     jwt.StandardClaims
 }
 
-func NewHelper(config *viper.Viper) Helper {
-    return &helper{
+func NewJWTHelper(config *viper.Viper) *JwtHelper {
+    return &JwtHelper{
         config: config,
     }
 }
 
-func (h *helper) GenerateTokenUser(user model.UserResponse) (string, string, error) {
+func (h *JwtHelper) GenerateTokenUser(user model.UserResponse) (string, string, error) {
     refreshSecret := h.config.GetString("credentials.refreshsecret")
     accessSecret := h.config.GetString("credentials.accesssecret")
 
