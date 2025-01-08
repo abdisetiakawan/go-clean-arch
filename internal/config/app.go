@@ -30,15 +30,15 @@ func Bootstrap(config *BootstrapConfig) {
     userController := http.NewUserController(userUseCase, config.Log)
 
     taskRepository := repository.NewTaskRepository(config.Log)
-    taskUseCase := usecase.NewTaskUseCase(config.DB, config.Log, config.Validate, taskRepository)
+    taskUseCase := usecase.NewTaskUseCase(config.DB, config.Log, config.Validate, taskRepository, config.Cache)
     taskController := http.NewTaskController(taskUseCase, config.Log)
 
     tagRepository := repository.NewTagRepository(config.Log)
-    tagUseCase := usecase.NewTagUseCase(config.DB, config.Log, config.Validate, tagRepository)
+    tagUseCase := usecase.NewTagUseCase(config.DB, config.Log, config.Validate, tagRepository, config.Cache)
     tagController := http.NewTagsController(tagUseCase, config.Log)
 
     taskTagRepository := repository.NewtaskTagRepository(config.Log)
-    taskTagUseCase := usecase.NewTaskTagUseCase(config.DB, config.Log, config.Validate, taskTagRepository)
+    taskTagUseCase := usecase.NewTaskTagUseCase(config.DB, config.Log, config.Validate, taskTagRepository, config.Cache)
     taskTagController := http.NewTaskTagController(taskTagUseCase, config.Log)
     
     authMiddleware := middleware.NewAuth(userUseCase, config.Config)
