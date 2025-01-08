@@ -69,8 +69,8 @@ func (c *TaskTagController) List(ctx *fiber.Ctx) error {
 
 func (c *TaskTagController) ListByTagId(ctx *fiber.Ctx) error {
 	auth := middleware.GetUser(ctx)
-	TagId := ctx.Params("tagId")
-	tagId, err := strconv.ParseUint(TagId, 10, 32)
+	tagIdStr := ctx.Params("tagId")
+	tagId, err := strconv.ParseUint(tagIdStr, 10, 32)
 	if err != nil {
 		c.Log.Warnf("Invalid tag ID : %+v", err)
 		return model.ErrBadRequest
