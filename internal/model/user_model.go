@@ -1,9 +1,9 @@
 package model
 
 type UserResponse struct {
-	Name         string `json:"name"`
-	Email        string `json:"email"`
-	AccessToken  string `json:"access_token,omitempty"`
+	Name        string `json:"name"`
+	Email       string `json:"email"`
+	AccessToken string `json:"access_token,omitempty"`
 }
 
 type VerifyUserRequest struct {
@@ -26,9 +26,9 @@ type LogoutUserRequest struct {
 }
 
 type UpdateUserRequest struct {
-	Name     string `json:"name,omitempty" validate:"required,max=100"`
-	Email    string `json:"email,omitempty" validate:"required,max=100"`
-	Password string `json:"password,omitempty" validate:"required,max=100"`
+	Name     string `json:"name,omitempty" validate:"max=100"`
+	Email    string `json:"-" validate:"max=100"`
+	Password string `json:"password,omitempty" validate:"max=100"`
 }
 
 type GetUserRequest struct {
