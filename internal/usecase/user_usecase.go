@@ -212,12 +212,6 @@ func (c *UserUseCase) Update(ctx context.Context, request *model.UpdateUserReque
 }
 
 func (c *UserUseCase) Current(ctx context.Context, request *model.GetUserRequest) (*model.UserResponse, error) {
-    var userResponse model.UserResponse
-    cacheKey := "current-user:" + request.Email
-    if err := c.Cache.GetAndUnmarshal(ctx, cacheKey, &userResponse); err == nil {
-        return &userResponse, nil
-    }
-    
 	tx := c.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
@@ -240,9 +234,5 @@ func (c *UserUseCase) Current(ctx context.Context, request *model.GetUserRequest
 		return nil, model.ErrInternalServer
 	}
 
-    userResponse = *converter.UserToResponse(user)
-    userResponseJSON, _ := json.Marshal(userResponse)
-    c.Cache.Set(ctx, cacheKey, userResponseJSON, 1*time.Minute)
-
-	return &userResponse, nil
+	return converter.UserToResponse(user), nil
 }

@@ -61,15 +61,6 @@ func (c *TaskUseCase) Create(ctx context.Context, request *model.CreateTaskReque
 }
 
 func (c *TaskUseCase) Search(ctx context.Context, request *model.SearchTaskRequest) ([]model.TaskResponse, int64, error) {
-	cacheKey := "tasks:search:" + request.Email
-    var cachedData struct {
-        Responses []model.TaskResponse
-        Total     int64
-    }
-    if err := c.Cache.GetAndUnmarshal(ctx, cacheKey, &cachedData); err == nil {
-        return cachedData.Responses, cachedData.Total, nil
-    }
-	
 	tx := c.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 	
@@ -92,17 +83,12 @@ func (c *TaskUseCase) Search(ctx context.Context, request *model.SearchTaskReque
 		responses[i] = *converter.TaskToResponse(&task)
 	}
 
-	cachedData.Responses = responses
-    cachedData.Total = total
-    cachedDataJSON, _ := json.Marshal(cachedData)
-    c.Cache.Set(ctx, cacheKey, cachedDataJSON, 1*time.Minute)
-
 	return responses, total, nil
 }
 
 func (c *TaskUseCase) Get(ctx context.Context, request *model.GetTaskRequest) (*model.TaskResponse, error) {
 	var taskResponse model.TaskResponse
-    cacheKey := "task:" + request.ID
+    cacheKey := "task:" + request.ID + "email:" + request.Email
     if err := c.Cache.GetAndUnmarshal(ctx, cacheKey, &taskResponse); err == nil {
         return &taskResponse, nil
 	}
@@ -124,7 +110,7 @@ func (c *TaskUseCase) Get(ctx context.Context, request *model.GetTaskRequest) (*
 	}
 	taskResponse = *converter.TaskToResponse(task)
 	taskResponseJSON, _ := json.Marshal(taskResponse)
-	c.Cache.Set(ctx, cacheKey, taskResponseJSON, 1*time.Minute)
+	c.Cache.Set(ctx, cacheKey, taskResponseJSON, 30*time.Minute)
 	return &taskResponse, nil
 }
 
@@ -153,7 +139,7 @@ func (c *TaskUseCase) Delete(ctx context.Context, request *model.GetTaskRequest)
 		return model.ErrInternalServer
 	}
 
-	c.Cache.Delete(ctx, "task:"+request.ID)
+	c.Cache.Delete(ctx, "task:"+request.ID+"email:"+request.Email)
 	return nil
 }
 
@@ -194,7 +180,7 @@ func (c *TaskUseCase) Update(ctx context.Context, request *model.UpdateTaskReque
 
 	taskResponse := converter.TaskToResponse(task)
     taskResponseJSON, _ := json.Marshal(taskResponse)
-    c.Cache.Set(ctx, "task:"+request.ID, taskResponseJSON, 1*time.Minute)
+    c.Cache.Set(ctx, "task:"+request.ID+"email:"+request.Email, taskResponseJSON, 30*time.Minute)
 
 	return taskResponse, nil
 }

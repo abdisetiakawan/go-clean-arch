@@ -58,15 +58,6 @@ func (c *TagUseCase) Create(ctx context.Context, request *model.CreateTagRequest
 }
 
 func (c *TagUseCase) Search(ctx context.Context, request *model.SearchTagRequest) ([]model.TagResponse, int64, error) {
-	cacheKey := "tags:search:" + request.Email
-	var cachedData struct {
-		Responses []model.TagResponse
-		Total int64
-	}
-	if err := c.Cache.GetAndUnmarshal(ctx, cacheKey, &cachedData); err == nil {
-		return cachedData.Responses, cachedData.Total, nil
-	}
-
 	tx := c.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
@@ -87,19 +78,13 @@ func (c *TagUseCase) Search(ctx context.Context, request *model.SearchTagRequest
 	for i, tag := range tags {
 		tag.Email = ""
 		responses[i] = *converter.TagToResponse(&tag)
-	} 
-
-	cachedData.Responses = responses
-	cachedData.Total = total
-	cachedDataJSON, _ := json.Marshal(cachedData)
-	c.Cache.Set(ctx, cacheKey, cachedDataJSON, 1*time.Minute)
-	
+	}	
 	return responses, total, nil
 }
 
 func (c *TagUseCase) Get(ctx context.Context, request *model.GetTagRequest) (*model.TagResponse, error) {
 	var tagResponse model.TagResponse
-	cacheKey := "tags:" + request.ID
+	cacheKey := "tags:" + request.ID + "email:" + request.Email
 	if err := c.Cache.GetAndUnmarshal(ctx, cacheKey, &tagResponse); err == nil {
 		return &tagResponse, nil
 	}
@@ -123,7 +108,7 @@ func (c *TagUseCase) Get(ctx context.Context, request *model.GetTagRequest) (*mo
 
 	tagResponse = *converter.TagToResponse(tag)
 	tagResponseJSON, _ := json.Marshal(tagResponse)
-	c.Cache.Set(ctx, cacheKey, tagResponseJSON, 1*time.Minute)
+	c.Cache.Set(ctx, cacheKey, tagResponseJSON, 30*time.Minute)
 	
 	return &tagResponse, nil
 }
@@ -156,7 +141,7 @@ func (c *TagUseCase) Update(ctx context.Context, request *model.UpdateTagRequest
 
 	tagResponse := converter.TagToResponse(tag)
 	tagResponseJSON, _ := json.Marshal(tagResponse)
-	c.Cache.Set(ctx, "tags:"+request.ID, tagResponseJSON, 1*time.Minute)
+	c.Cache.Set(ctx, "tags:"+request.ID+"email:"+request.Email, tagResponseJSON, 30*time.Minute)
 	
 	return tagResponse, nil
 }
@@ -186,7 +171,7 @@ func (c *TagUseCase) Delete(ctx context.Context, request *model.GetTagRequest) e
 		return model.ErrInternalServer
 	}
 
-	c.Cache.Delete(ctx, "tags:"+request.ID)
+	c.Cache.Delete(ctx, "tags:"+request.ID+"email:"+request.Email)
 
 	return nil
 }

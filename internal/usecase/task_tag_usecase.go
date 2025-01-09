@@ -64,25 +64,11 @@ func (c *TaskTagUseCase) Create(ctx context.Context, request *model.CreateTaskTa
         return nil, model.ErrInternalServer
     }
 
-    // Clear all related caches
-    c.Cache.Delete(ctx, "task_tags:" + email)
-    c.Cache.Delete(ctx, "task_tags:search:" + email)
-    c.Cache.Delete(ctx, "task_tags:" + strconv.Itoa(int(request.TagId)))
-
     return converter.TaskTagToResponse(taskTag), nil
 }
 
 
 func (c *TaskTagUseCase) Search(ctx context.Context, request *model.SearchTaskTagRequest) ([]model.TaskTagResult, int64, error) {
-	cacheKey := "task_tags:search:" + request.Email
-	var cachedData struct {
-		Responses []model.TaskTagResult
-		Total     int64
-	}
-	if err := c.Cache.GetAndUnmarshal(ctx, cacheKey, &cachedData); err == nil {
-		return cachedData.Responses, cachedData.Total, nil
-	}
-	
 	tx := c.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
@@ -107,16 +93,11 @@ func (c *TaskTagUseCase) Search(ctx context.Context, request *model.SearchTaskTa
 		responses[i] = *converter.TaskWithTagsToResponse(&taskTag)
 	}
 
-	cachedData.Responses = responses
-	cachedData.Total = total
-	cachedDataJSON, _ := json.Marshal(cachedData)
-	c.Cache.Set(ctx, cacheKey, cachedDataJSON, 1 * time.Minute)
-
 	return responses, total, nil
 }
 
 func (c *TaskTagUseCase) SearchTaskTagRequestWithTagId(ctx context.Context, request *model.SearchTaskTagRequestWithTagId) ([]model.TaskTagResult, int64, error) {
-	cacheKey := "task_tags:" + strconv.Itoa(int(request.TagId))
+	cacheKey := "task_tags:" + strconv.Itoa(int(request.TagId)) + "email:" + request.Email
 	var cachedData struct {
 		Responses []model.TaskTagResult
 		Total     int64
@@ -149,7 +130,7 @@ func (c *TaskTagUseCase) SearchTaskTagRequestWithTagId(ctx context.Context, requ
 	cachedData.Responses = responses
 	cachedData.Total = total
 	cachedDataJSON, _ := json.Marshal(cachedData)
-	c.Cache.Set(ctx, cacheKey, cachedDataJSON, 1 * time.Minute)
+	c.Cache.Set(ctx, cacheKey, cachedDataJSON, 30 * time.Minute)
 
 	return responses, total, nil
 }
@@ -176,10 +157,7 @@ func (c *TaskTagUseCase) Delete(ctx context.Context, request *model.GetTaskTagFo
         return model.ErrInternalServer
     }
 
-    // Clear all related caches
-    c.Cache.Delete(ctx, "task_tags:" + request.Email)
-    c.Cache.Delete(ctx, "task_tags:search:" + request.Email)
-    c.Cache.Delete(ctx, "task_tags:" + strconv.Itoa(int(taskTag.TagId)))
-    
+	c.Cache.Delete(ctx, "task_tags:"+strconv.Itoa(int(request.TaskId))+"email:"+request.Email)
+
     return nil
 }
