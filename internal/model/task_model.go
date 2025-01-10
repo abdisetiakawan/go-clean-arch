@@ -5,10 +5,10 @@ import (
 )
 
 type CreateTaskRequest struct {
-	Email       string `json:"email" validate:"required,max=100"`
+	Email       string `json:"-" validate:"required,max=100"`
 	Title       string `json:"title" validate:"required,max=150"`
 	Description string `json:"description" validate:"required"`
-	Status      string `json:"status"`
+	Status      string `json:"status" validate:"oneof=pending in_progress completed"`
 	DueDate     time.Time	`json:"due_date" validate:"required"`
 }
 
@@ -17,7 +17,7 @@ type UpdateTaskRequest struct {
 	Email       string `json:"-" validate:"max=100"`
 	Title       string `json:"title" validate:"max=150"`
 	Description string `json:"description"`
-	Status      string `json:"status"`
+	Status      string `json:"status" validate:"oneof=pending in_progress completed"`
 	DueDate     time.Time	`json:"due_date"`
 }
 
