@@ -89,7 +89,7 @@ Pastikan Anda telah menginstal Go dan memiliki akses ke database MySQL.
 
 Aplikasi akan berjalan di http://localhost:8080.
 
-## Request dan Response
+## API Endpoints
 
 ### User
 
@@ -107,11 +107,12 @@ Aplikasi akan berjalan di http://localhost:8080.
 - **Response**:
   ```json
   {
+    "status": "success",
+    "message": "Successfully registered user",
     "data": {
       "name": "John Doe",
       "email": "john.doe@example.com",
-      "access_token": "access_token",
-      "refresh_token": "refresh_token"
+      "access_token": "access_token"
     }
   }
   ```
@@ -129,11 +130,12 @@ Aplikasi akan berjalan di http://localhost:8080.
 - **Response**:
   ```json
   {
+    "status": "success",
+    "message": "Successfully login user",
     "data": {
       "name": "John Doe",
       "email": "john.doe@example.com",
-      "access_token": "access_token",
-      "refresh_token": "refresh_token"
+      "access_token": "access_token"
     }
   }
   ```
@@ -144,6 +146,8 @@ Aplikasi akan berjalan di http://localhost:8080.
 - **Response**:
   ```json
   {
+    "status": "success",
+    "message": "Successfully get current user",
     "data": {
       "name": "John Doe",
       "email": "john.doe@example.com"
@@ -164,6 +168,8 @@ Aplikasi akan berjalan di http://localhost:8080.
 - **Response**:
   ```json
   {
+    "status": "success",
+    "message": "Successfully updated user",
     "data": {
       "name": "John Doe Updated",
       "email": "john.doe@example.com"
@@ -188,6 +194,8 @@ Aplikasi akan berjalan di http://localhost:8080.
 - **Response**:
   ```json
   {
+    "status": "success",
+    "message": "Successfully created task",
     "data": {
       "id": 1,
       "title": "New Task",
@@ -204,6 +212,8 @@ Aplikasi akan berjalan di http://localhost:8080.
 - **Response**:
   ```json
   {
+    "status": "success",
+    "message": "Tasks fetched successfully",
     "data": [
       {
         "id": 1,
@@ -228,6 +238,8 @@ Aplikasi akan berjalan di http://localhost:8080.
 - **Response**:
   ```json
   {
+    "status": "success",
+    "message": "Successfully get task",
     "data": {
       "id": 1,
       "title": "New Task",
@@ -253,6 +265,8 @@ Aplikasi akan berjalan di http://localhost:8080.
 - **Response**:
   ```json
   {
+    "status": "success",
+    "message": "Successfully updated task",
     "data": {
       "id": 1,
       "title": "Updated Task",
@@ -266,12 +280,7 @@ Aplikasi akan berjalan di http://localhost:8080.
 #### Delete Task
 
 - **Endpoint**: `DELETE /api/tasks/:taskId`
-- **Response**:
-  ```json
-  {
-    "data": true
-  }
-  ```
+- **Response**: No content (204)
 
 ### Tag
 
@@ -287,6 +296,8 @@ Aplikasi akan berjalan di http://localhost:8080.
 - **Response**:
   ```json
   {
+    "status": "success",
+    "message": "Successfully created tag",
     "data": {
       "id": 1,
       "name": "New Tag"
@@ -300,6 +311,8 @@ Aplikasi akan berjalan di http://localhost:8080.
 - **Response**:
   ```json
   {
+    "status": "success",
+    "message": "Tags fetched successfully",
     "data": [
       {
         "id": 1,
@@ -321,6 +334,8 @@ Aplikasi akan berjalan di http://localhost:8080.
 - **Response**:
   ```json
   {
+    "status": "success",
+    "message": "Successfully get tag",
     "data": {
       "id": 1,
       "name": "New Tag"
@@ -340,6 +355,8 @@ Aplikasi akan berjalan di http://localhost:8080.
 - **Response**:
   ```json
   {
+    "status": "success",
+    "message": "Successfully updated tag",
     "data": {
       "id": 1,
       "name": "Updated Tag"
@@ -350,12 +367,7 @@ Aplikasi akan berjalan di http://localhost:8080.
 #### Delete Tag
 
 - **Endpoint**: `DELETE /api/tags/:tagId`
-- **Response**:
-  ```json
-  {
-    "data": true
-  }
-  ```
+- **Response**: No content (204)
 
 ### Task Tag
 
@@ -371,6 +383,8 @@ Aplikasi akan berjalan di http://localhost:8080.
 - **Response**:
   ```json
   {
+    "status": "success",
+    "message": "Successfully created task tag",
     "data": {
       "id": 1,
       "taskId": 1,
@@ -385,6 +399,8 @@ Aplikasi akan berjalan di http://localhost:8080.
 - **Response**:
   ```json
   {
+    "status": "success",
+    "message": "Task tags fetched successfully",
     "data": [
       {
         "id": 1,
@@ -410,6 +426,8 @@ Aplikasi akan berjalan di http://localhost:8080.
 - **Response**:
   ```json
   {
+    "status": "success",
+    "message": "Task tags fetched successfully",
     "data": [
       {
         "id": 1,
@@ -432,9 +450,4 @@ Aplikasi akan berjalan di http://localhost:8080.
 #### Delete Task Tag
 
 - **Endpoint**: `DELETE /api/tasks/:taskId/tags/:tagId`
-- **Response**:
-  ```json
-  {
-    "data": true
-  }
-  ```
+- **Response**: No content (204)
