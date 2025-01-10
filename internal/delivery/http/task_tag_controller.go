@@ -42,7 +42,7 @@ func (c *TaskTagController) Create(ctx *fiber.Ctx) error {
 		c.Log.Warnf("Failed to create task tag : %+v", err)
 		return err
 	}
-	return ctx.Status(fiber.StatusCreated).JSON(model.WebResponse[*model.TaskTagResponse]{Data: response})
+	return ctx.Status(fiber.StatusCreated).JSON(model.NewWebResponse(response, "Successfully created task tag", fiber.StatusCreated, nil))
 }
 
 func (c *TaskTagController) List(ctx *fiber.Ctx) error {
@@ -64,7 +64,7 @@ func (c *TaskTagController) List(ctx *fiber.Ctx) error {
 		TotalPage: int64(math.Ceil(float64(total) / float64(request.Size))),
 		}
 
-	return ctx.Status(fiber.StatusOK).JSON(model.WebResponse[[]model.TaskTagResult]{Paging: paging, Data: responses})
+	return ctx.Status(fiber.StatusOK).JSON(model.NewWebResponse(responses, "Task tags fetched successfully", fiber.StatusOK, paging))
 }
 
 func (c *TaskTagController) ListByTagId(ctx *fiber.Ctx) error {
@@ -93,7 +93,7 @@ func (c *TaskTagController) ListByTagId(ctx *fiber.Ctx) error {
 		TotalPage: int64(math.Ceil(float64(total) / float64(request.Size))),
 		}
 
-	return ctx.Status(fiber.StatusOK).JSON(model.WebResponse[[]model.TaskTagResult]{Paging: paging, Data: responses})
+	return ctx.Status(fiber.StatusOK).JSON(model.NewWebResponse(responses, "Task tags fetched successfully", fiber.StatusOK, paging))
 }
 
 func (c *TaskTagController) Delete(ctx *fiber.Ctx) error {

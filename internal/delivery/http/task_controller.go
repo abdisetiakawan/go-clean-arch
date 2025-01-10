@@ -46,7 +46,7 @@ func (c *TaskController) List(ctx *fiber.Ctx) error {
 		TotalPage: int64(math.Ceil(float64(total) / float64(request.Size))),
 	}
 
-	return ctx.Status(fiber.StatusOK).JSON(model.WebResponse[[]model.TaskResponse]{Paging: paging, Data: responses})
+	return ctx.Status(fiber.StatusOK).JSON(model.NewWebResponse(responses, "Tasks fetched successfully", fiber.StatusOK, paging))
 }
 
 func (c *TaskController) Create(ctx *fiber.Ctx) error {
@@ -62,7 +62,7 @@ func (c *TaskController) Create(ctx *fiber.Ctx) error {
 		c.Log.Warnf("Failed to create task : %+v", err)
 		return err
 	}
-	return ctx.Status(fiber.StatusCreated).JSON(model.WebResponse[*model.TaskResponse]{Data: response})
+	return ctx.Status(fiber.StatusCreated).JSON(model.NewWebResponse(response, "Successfully created task", fiber.StatusCreated, nil))
 }
 
 func (c *TaskController) Update(ctx *fiber.Ctx) error {
@@ -79,7 +79,7 @@ func (c *TaskController) Update(ctx *fiber.Ctx) error {
 		c.Log.Warnf("Failed to update task : %+v", err)
 		return err
 	}
-	return ctx.Status(fiber.StatusOK).JSON(model.WebResponse[*model.TaskResponse]{Data: response})
+	return ctx.Status(fiber.StatusOK).JSON(model.NewWebResponse(response, "Successfully updated task", fiber.StatusOK, nil))
 }
 
 func (c *TaskController) Get(ctx *fiber.Ctx) error {
@@ -94,7 +94,7 @@ func (c *TaskController) Get(ctx *fiber.Ctx) error {
 		c.Log.Warnf("Failed to get task : %+v", err)
 		return err
 	}
-	return ctx.Status(fiber.StatusOK).JSON(model.WebResponse[*model.TaskResponse]{Data: response})
+	return ctx.Status(fiber.StatusOK).JSON(model.NewWebResponse(response, "Successfully get task", fiber.StatusOK, nil))
 }
 
 func (c *TaskController) Delete(ctx *fiber.Ctx) error {
