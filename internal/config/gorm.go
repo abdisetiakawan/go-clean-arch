@@ -46,11 +46,3 @@ func NewDatabase(viper *viper.Viper, log *logrus.Logger) *gorm.DB {
 
 	return db
 }
-
-type logrusWriter struct {
-	Logger *logrus.Logger
-}
-
-func (l *logrusWriter) Printf(message string, args ...interface{}) {
-	l.Logger.Tracef(message, args...)
-}
