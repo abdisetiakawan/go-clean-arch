@@ -2,12 +2,13 @@ package config
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"time"
 )
 
 func NewDatabase(viper *viper.Viper, log *logrus.Logger) *gorm.DB {
@@ -45,4 +46,11 @@ func NewDatabase(viper *viper.Viper, log *logrus.Logger) *gorm.DB {
 	connection.SetConnMaxLifetime(time.Second * time.Duration(maxLifeTimeConnection))
 
 	return db
+}
+
+type logrusWriter struct {
+	Logger *logrus.Logger
+}
+func (l *logrusWriter) Printf(message string, args ...interface{}) {
+	l.Logger.Tracef(message, args...)
 }
